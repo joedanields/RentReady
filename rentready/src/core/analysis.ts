@@ -53,7 +53,7 @@ export function verifyFindingQuotes(
 
 /**
  * "Present" needs proof: a protection the model calls present without a verified (or close)
- * quote is shown as unclear, never as covered (CLAUDE.md rule 4).
+ * quote is shown as unclear, never as covered.
  */
 export function demoteGapEvidence(gaps: GapRow[]): GapRow[] {
   return gaps.map(g =>

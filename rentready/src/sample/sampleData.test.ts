@@ -43,7 +43,7 @@ describe('sample agreement fixtures', () => {
     }
   });
 
-  it('keeps the deliberate problems the demo is built to show (KICKOFF brief)', () => {
+  it('keeps the deliberate problems the demo is built to show', () => {
     const all = clauses
       .map(c => c.text)
       .join('\n')

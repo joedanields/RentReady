@@ -101,7 +101,7 @@ Run these from the `rentready/` folder:
 | AI calls per report | 1 (analysis); Ask and message polish on demand; session budget of 12 |
 | Production dependencies with known vulnerabilities | 0 (`npm audit --omit=dev`) |
 | Golden set, offline | 5 agreements · rule recall **100%** (23/23) · rule precision **100%** (23/23) — enforced in CI |
-| Golden set, live (partial) | First run hit free-tier limits after one agreement: quote verification 13/13, latency 14.4 s. Full run: `npm run eval` (see [`HUMAN_TASKS.md`](rentready/HUMAN_TASKS.md)) |
+| Golden set, live (partial) | First run hit free-tier limits after one agreement: quote verification 13/13, latency 14.4 s. Full run: put `GEMINI_API_KEY=...` in `rentready/.env.local` (gitignored), then `npm run eval` |
 
 ## Claims you can check
 
@@ -120,7 +120,7 @@ Run these from the `rentready/` folder:
 | Criterion | Where to look |
 |---|---|
 | Problem statement alignment | This README, [`docs/PRD.md`](rentready/docs/PRD.md), [`docs/INTERVIEW_SPEC.md`](rentready/docs/INTERVIEW_SPEC.md); the interview → report → message flow |
-| Code quality | Strict TS (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), pure `src/core` domain layer, [`docs/DECISIONS.md`](rentready/docs/DECISIONS.md) |
+| Code quality | Strict TS (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), pure `src/core` domain layer (no React, runs in Node for the eval script) |
 | Security | [`docs/SECURITY.md`](rentready/docs/SECURITY.md), the "Claims you can check" table above |
 | Efficiency | Offline rules, one AI call per report, lazy parsers, 135.8 KB initial JS |
 | Testing | [`docs/TESTING.md`](rentready/docs/TESTING.md), `npm run test:coverage`, `npm run test:e2e` |
@@ -133,7 +133,7 @@ Run these from the `rentready/` folder:
 
 ## Documentation
 
-[`PRD`](rentready/docs/PRD.md) · [`INTERVIEW_SPEC`](rentready/docs/INTERVIEW_SPEC.md) · [`ARCHITECTURE`](rentready/docs/ARCHITECTURE.md) · [`AI_PIPELINE`](rentready/docs/AI_PIPELINE.md) · [`LEGAL_RULES`](rentready/docs/LEGAL_RULES.md) · [`UX_FLOW`](rentready/docs/UX_FLOW.md) · [`SECURITY`](rentready/docs/SECURITY.md) · [`TESTING`](rentready/docs/TESTING.md) · [`ACCESSIBILITY`](rentready/docs/ACCESSIBILITY.md) · [`DEPLOYMENT`](rentready/docs/DEPLOYMENT.md) · [`PROJECT_PLAN`](rentready/docs/PROJECT_PLAN.md) · [`SUBMISSION`](rentready/docs/SUBMISSION.md)
+[`PRD`](rentready/docs/PRD.md) · [`INTERVIEW_SPEC`](rentready/docs/INTERVIEW_SPEC.md) · [`ARCHITECTURE`](rentready/docs/ARCHITECTURE.md) · [`AI_PIPELINE`](rentready/docs/AI_PIPELINE.md) · [`LEGAL_RULES`](rentready/docs/LEGAL_RULES.md) · [`UX_FLOW`](rentready/docs/UX_FLOW.md) · [`SECURITY`](rentready/docs/SECURITY.md) · [`TESTING`](rentready/docs/TESTING.md) · [`ACCESSIBILITY`](rentready/docs/ACCESSIBILITY.md) · [`DEPLOYMENT`](rentready/docs/DEPLOYMENT.md)
 
 ## Disclaimer
 

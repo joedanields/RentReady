@@ -19,7 +19,7 @@ RentReady has **no backend**. That removes entire classes of risk (no server to 
 | Guidance | The key panel links to Google AI Studio, recommends a free-tier key created for this purpose, and explains how to delete it afterwards. |
 | No key path | Demo mode gives the full experience with bundled fixtures. |
 
-**Evaluation exception:** for a hosted machine evaluation the owner may set `VITE_EVAL_GEMINI_KEY` in the host's build settings. That key is bundled into public JavaScript, so it must be a throwaway, API-restricted key deleted after the evaluation (HUMAN_TASKS.md §5). It is unset by default and never committed.
+**Evaluation exception:** for a hosted machine evaluation the owner may set `VITE_EVAL_GEMINI_KEY` in the host's build settings. That key is bundled into public JavaScript, so it must be a throwaway, API-restricted key deleted after the evaluation. It is unset by default and never committed. Procedure: create a new key in Google AI Studio; restrict it to the Generative Language API (no website restrictions — the app sends no referrer); set it as `VITE_EVAL_GEMINI_KEY` in the host's production build settings and redeploy; afterwards delete the key in AI Studio, remove the variable and redeploy.
 
 **Why this is safe enough:** the key never leaves the user's own browser, and the only party that receives it is the service that issued it. A hosted proxy would instead concentrate every user's document and one shared secret on a server we'd have to secure — a strictly larger attack surface.
 
@@ -66,7 +66,7 @@ This mirrors the data-minimisation and purpose-limitation ideas in India's Digit
 ## 6. Pre-submission checklist
 - [x] `git grep -nE "AIza[0-9A-Za-z_-]{20,}"` → nothing (also check fixtures and `.env*` ignored) — CI step; test keys are assembled at runtime
 - [x] No `dangerouslySetInnerHTML`, `eval`, `new Function`, `localStorage.setItem` for the key — ESLint bans; key only in memory or opt-in `sessionStorage`
-- [ ] CSP present on the deployed site (verified locally under `vite preview` with the same headers; deployed check pending — HUMAN_TASKS.md) (`curl -I`, securityheaders.com); `connect-src` has exactly one external origin
+- [ ] CSP present on the deployed site (verified locally under `vite preview` with the same headers; deployed check pending) (`curl -I`, securityheaders.com); `connect-src` has exactly one external origin
 - [x] Key never appears in DOM text, exports, share text or URLs (E2E assertion) — `e2e/key.spec.ts`, `e2e/actions.spec.ts`
 - [x] Injection fixture produces no behavioural change — `src/core/injection.test.ts` (unit level)
 - [x] Oversized and wrong-type files rejected with friendly errors — `src/core/parsing/intake.test.ts`, `e2e/upload.spec.ts`

@@ -38,7 +38,7 @@ const AppContext = createContext<AppContextValue | null>(null);
 /**
  * Optional key for a hosted machine evaluation, set as VITE_EVAL_GEMINI_KEY in the host's build
  * settings — never in the repo. Anything built this way ships the key in public JavaScript, so it
- * must be a throwaway, API-restricted key deleted after the evaluation (HUMAN_TASKS.md §5).
+ * must be a throwaway, API-restricted key deleted after the evaluation (docs/SECURITY.md §2).
  * Unset by default; loaded into memory like a typed key, so "Forget key" still clears it.
  */
 export function evaluationKey(env: Record<string, unknown> = import.meta.env): string | null {
@@ -55,7 +55,7 @@ export function initState(base: AppState, search: string): AppState {
   return {
     ...base,
     // English-only release: the Hindi dictionary is incomplete, so a saved preference or
-    // ?lang=hi must not switch the UI into a half-translated state (DECISIONS #50).
+    // ?lang=hi must not switch the UI into a half-translated state.
     preferences: { ...prefs, language: ENGLISH_ONLY ? 'en' : (url.lang ?? prefs.language) },
     demo: base.demo || url.demo || loadDemoFlag(),
     key: remembered
