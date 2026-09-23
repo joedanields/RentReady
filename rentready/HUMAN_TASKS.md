@@ -22,7 +22,7 @@ Things only the project owner can do. Everything else is automated or in the rep
    curl -sI https://<project>.pages.dev | grep -iE 'content-security-policy|strict-transport|x-frame|referrer'
    ```
    `connect-src` must list exactly one external origin: `https://generativelanguage.googleapis.com`.
-5. Paste the live URL into `README.md` and tell Claude so the Phase 0 deploy box can be ticked.
+5. Paste the live URL into the root `README.md` and tell Claude so the Phase 0 deploy box can be ticked.
 
 ## 3. Real Gemini key for `npm run eval` (Phase 9)
 1. Create a free-tier key at https://aistudio.google.com/apikey — a fresh key used only for this project.

@@ -74,9 +74,12 @@ React 19 · Vite · TypeScript (strict) · Tailwind CSS · Zod · Gemini API (di
 ## Quick start
 
 ```bash
+cd rentready
 npm install
 npm run dev          # http://localhost:5173 — starts in Demo mode, no key needed
 ```
+
+Run these from the `rentready/` folder:
 
 | Script | Purpose |
 |---|---|
@@ -98,30 +101,30 @@ npm run dev          # http://localhost:5173 — starts in Demo mode, no key nee
 | AI calls per report | 1 (analysis); Ask and message polish on demand; session budget of 12 |
 | Production dependencies with known vulnerabilities | 0 (`npm audit --omit=dev`) |
 | Golden set, offline | 5 agreements · rule recall **100%** (23/23) · rule precision **100%** (23/23) — enforced in CI |
-| Golden set, live (partial) | First run hit free-tier limits after one agreement: quote verification 13/13, latency 14.4 s. Full run: `npm run eval` (see `HUMAN_TASKS.md`) |
+| Golden set, live (partial) | First run hit free-tier limits after one agreement: quote verification 13/13, latency 14.4 s. Full run: `npm run eval` (see [`HUMAN_TASKS.md`](rentready/HUMAN_TASKS.md)) |
 
 ## Claims you can check
 
 | Claim | Evidence |
 |---|---|
-| The model reports, the code judges | Verdicts in [`src/core/interview/compare.ts`](src/core/interview/compare.ts); rules in [`src/core/rules/rental.ts`](src/core/rules/rental.ts) read the agreement via [`extract.ts`](src/core/rules/extract.ts) |
-| Every quote is verified | [`src/core/verify/verifyQuote.ts`](src/core/verify/verifyQuote.ts); unverified evidence → "Couldn't confirm", uncited "covered" → unclear ([`analysis.ts`](src/core/analysis.ts)) |
-| Demo is as honest as live | [`src/sample/sampleData.test.ts`](src/sample/sampleData.test.ts) fails if any recorded quote stops verifying |
-| Prompt injection changes nothing | [`src/core/injection.test.ts`](src/core/injection.test.ts) |
-| The key never leaks | [`e2e/key.spec.ts`](e2e/key.spec.ts): not in page text, URL, storage or downloads; sent only as `x-goog-api-key` |
-| Exactly one external origin | CSP `connect-src 'self' https://generativelanguage.googleapis.com`; E2E runs under the production headers ([`vite.config.ts`](vite.config.ts), [`e2e/shell.spec.ts`](e2e/shell.spec.ts)) |
-| Hostile files are refused | Magic bytes must match the extension; size/page/char caps ([`src/core/parsing/intake.ts`](src/core/parsing/intake.ts), `e2e/upload.spec.ts`) |
+| The model reports, the code judges | Verdicts in [`src/core/interview/compare.ts`](rentready/src/core/interview/compare.ts); rules in [`src/core/rules/rental.ts`](rentready/src/core/rules/rental.ts) read the agreement via [`extract.ts`](rentready/src/core/rules/extract.ts) |
+| Every quote is verified | [`src/core/verify/verifyQuote.ts`](rentready/src/core/verify/verifyQuote.ts); unverified evidence → "Couldn't confirm", uncited "covered" → unclear ([`analysis.ts`](rentready/src/core/analysis.ts)) |
+| Demo is as honest as live | [`src/sample/sampleData.test.ts`](rentready/src/sample/sampleData.test.ts) fails if any recorded quote stops verifying |
+| Prompt injection changes nothing | [`src/core/injection.test.ts`](rentready/src/core/injection.test.ts) |
+| The key never leaks | [`e2e/key.spec.ts`](rentready/e2e/key.spec.ts): not in page text, URL, storage or downloads; sent only as `x-goog-api-key` |
+| Exactly one external origin | CSP `connect-src 'self' https://generativelanguage.googleapis.com`; E2E runs under the production headers ([`vite.config.ts`](rentready/vite.config.ts), [`e2e/shell.spec.ts`](rentready/e2e/shell.spec.ts)) |
+| Hostile files are refused | Magic bytes must match the extension; size/page/char caps ([`src/core/parsing/intake.ts`](rentready/src/core/parsing/intake.ts), `e2e/upload.spec.ts`) |
 
 ## Judging criteria map
 
 | Criterion | Where to look |
 |---|---|
-| Problem statement alignment | This README, [`docs/PRD.md`](docs/PRD.md), [`docs/INTERVIEW_SPEC.md`](docs/INTERVIEW_SPEC.md); the interview → report → message flow |
-| Code quality | Strict TS (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), pure `src/core` domain layer, [`docs/DECISIONS.md`](docs/DECISIONS.md) |
-| Security | [`docs/SECURITY.md`](docs/SECURITY.md), the "Claims you can check" table above |
+| Problem statement alignment | This README, [`docs/PRD.md`](rentready/docs/PRD.md), [`docs/INTERVIEW_SPEC.md`](rentready/docs/INTERVIEW_SPEC.md); the interview → report → message flow |
+| Code quality | Strict TS (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), pure `src/core` domain layer, [`docs/DECISIONS.md`](rentready/docs/DECISIONS.md) |
+| Security | [`docs/SECURITY.md`](rentready/docs/SECURITY.md), the "Claims you can check" table above |
 | Efficiency | Offline rules, one AI call per report, lazy parsers, 135.8 KB initial JS |
-| Testing | [`docs/TESTING.md`](docs/TESTING.md), `npm run test:coverage`, `npm run test:e2e` |
-| Accessibility | [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md); axe in component and E2E tests; keyboard-only interview journey |
+| Testing | [`docs/TESTING.md`](rentready/docs/TESTING.md), `npm run test:coverage`, `npm run test:e2e` |
+| Accessibility | [`docs/ACCESSIBILITY.md`](rentready/docs/ACCESSIBILITY.md); axe in component and E2E tests; keyboard-only interview journey |
 
 ## Known limitations
 
@@ -130,7 +133,7 @@ npm run dev          # http://localhost:5173 — starts in Demo mode, no key nee
 
 ## Documentation
 
-[`PRD`](docs/PRD.md) · [`INTERVIEW_SPEC`](docs/INTERVIEW_SPEC.md) · [`ARCHITECTURE`](docs/ARCHITECTURE.md) · [`AI_PIPELINE`](docs/AI_PIPELINE.md) · [`LEGAL_RULES`](docs/LEGAL_RULES.md) · [`UX_FLOW`](docs/UX_FLOW.md) · [`SECURITY`](docs/SECURITY.md) · [`TESTING`](docs/TESTING.md) · [`ACCESSIBILITY`](docs/ACCESSIBILITY.md) · [`DEPLOYMENT`](docs/DEPLOYMENT.md) · [`PROJECT_PLAN`](docs/PROJECT_PLAN.md) · [`SUBMISSION`](docs/SUBMISSION.md)
+[`PRD`](rentready/docs/PRD.md) · [`INTERVIEW_SPEC`](rentready/docs/INTERVIEW_SPEC.md) · [`ARCHITECTURE`](rentready/docs/ARCHITECTURE.md) · [`AI_PIPELINE`](rentready/docs/AI_PIPELINE.md) · [`LEGAL_RULES`](rentready/docs/LEGAL_RULES.md) · [`UX_FLOW`](rentready/docs/UX_FLOW.md) · [`SECURITY`](rentready/docs/SECURITY.md) · [`TESTING`](rentready/docs/TESTING.md) · [`ACCESSIBILITY`](rentready/docs/ACCESSIBILITY.md) · [`DEPLOYMENT`](rentready/docs/DEPLOYMENT.md) · [`PROJECT_PLAN`](rentready/docs/PROJECT_PLAN.md) · [`SUBMISSION`](rentready/docs/SUBMISSION.md)
 
 ## Disclaimer
 

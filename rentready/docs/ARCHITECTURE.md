@@ -53,7 +53,7 @@ rentready/
 ├─ public/_headers               # CSP and security headers (static)
 ├─ public/manifest.webmanifest   # PWA
 ├─ .github/workflows/ci.yml
-├─ CLAUDE.md · README.md · docs/
+├─ CLAUDE.md · docs/          # README.md lives at the repository root
 └─ vite.config.ts · tsconfig.json · eslint.config.js
 ```
 `src/core` must never import React or browser-only globals beyond `fetch`, `TextEncoder` and `crypto`, so it can run in Node for `scripts/eval.ts` and in tests.

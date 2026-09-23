@@ -3,7 +3,7 @@
 ## Project
 RentReady: a **backend-free** React app that checks an Indian rental agreement against what the renter says they were promised, reports what's missing, and produces a negotiation message and move-in kit. Static hosting on Cloudflare Pages. The user brings their own Gemini API key (BYOK), called directly from the browser.
 
-Read `README.md` and all of `docs/` before deciding anything. `docs/ARCHITECTURE.md` governs structure; `docs/INTERVIEW_SPEC.md` governs the interview and verdict semantics; `docs/PROJECT_PLAN.md` governs order of work.
+Read `../README.md` (repository root) and all of `docs/` before deciding anything. `docs/ARCHITECTURE.md` governs structure; `docs/INTERVIEW_SPEC.md` governs the interview and verdict semantics; `docs/PROJECT_PLAN.md` governs order of work.
 
 ## Commands
 `npm run dev` · `npm run build` · `npm run preview` · `npm run lint` · `npm run typecheck` · `npm test` · `npm run test:coverage` · `npm run test:e2e` · `npm run eval` (needs a real key in `.env.local`; never in CI)
