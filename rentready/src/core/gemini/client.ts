@@ -194,7 +194,8 @@ export function repairJson(raw: string): string {
 }
 
 export function isKeyFormatValid(key: string): boolean {
-  return /^AIza[0-9A-Za-z_-]{20,}$/.test(key.trim());
+  // Google issues classic "AIza…" keys and newer "AQ.…" keys; accept both, nothing else.
+  return /^(?:AIza[0-9A-Za-z_-]{30,}|AQ\.[0-9A-Za-z._-]{30,})$/.test(key.trim());
 }
 
 // Re-export redact for the error path so outer code can scrub model errors too

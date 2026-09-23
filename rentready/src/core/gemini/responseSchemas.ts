@@ -80,4 +80,5 @@ export const NEGOTIATION_SCHEMA = {
   required: ['message', 'items'],
 };
 
-export const DEFAULT_MODEL = 'gemini-2.5-flash';
+// gemini-2.5-flash is closed to new users (the API answers 404 and recommends this id).
+export const DEFAULT_MODEL = 'gemini-3.6-flash';

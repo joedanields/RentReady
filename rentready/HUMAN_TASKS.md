@@ -26,7 +26,8 @@ Things only the project owner can do. Everything else is automated or in the rep
 
 ## 3. Real Gemini key for `npm run eval` (Phase 9)
 1. Create a free-tier key at https://aistudio.google.com/apikey — a fresh key used only for this project.
-2. Put it in `rentready/.env.local` (gitignored) as `GEMINI_API_KEY=...`.
+2. Put it in `rentready/.env.local` (gitignored) as `GEMINI_API_KEY=...`. Both "AIza…" and newer "AQ.…" keys work. The default model is `gemini-3.6-flash` (`gemini-2.5-flash` is closed to new users).
+   The eval makes 15 calls; the free tier may need a pause (429 quota / 503 busy) — re-run later if a case fails. Per-case misses are printed to help tune.
 3. Run `npm run eval` and paste the metrics table into the README.
 4. Optional: with the same key, analyse the sample in the app and replace the hand-authored fixtures in `src/sample/sampleData.ts` with the real responses (`npx vitest run src/sample` must stay green). Delete the key in AI Studio afterwards if you like.
 

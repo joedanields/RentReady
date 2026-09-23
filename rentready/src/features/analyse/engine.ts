@@ -120,7 +120,7 @@ export async function runAnalysis(opts: AnalyseOptions): Promise<AnalysisResult>
   } catch (e) {
     // Offline or too slow: the rules still run locally, so show that report instead of nothing.
     const code = (e as { code?: string }).code;
-    if (code === 'NETWORK' || code === 'TIMEOUT') {
+    if (code === 'NETWORK' || code === 'TIMEOUT' || code === 'SERVICE_BUSY') {
       return { ...analyseDocument({ answers, clauses, localOnly: true }), fallback: code };
     }
     throw e;

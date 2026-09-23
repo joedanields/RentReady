@@ -101,10 +101,12 @@ const REFUND_TIMELINE = [
   /\b(refund|return|repa)\w*\b[\s\S]{0,100}?\bwithin\s+\S+\s*(\(\s*\d+\s*\)\s*)?(days?|weeks?|months?)\b/i,
   /\bwithin\s+\S+\s*(\(\s*\d+\s*\)\s*)?(days?|weeks?)\b[\s\S]{0,100}?\b(refund|return|repa)\w*/i,
 ];
+// Owner-decided wording counts only in a sentence about the deposit or deductions — "revise the
+// rent at his sole discretion" is a rent-increase issue, not a deposit one.
+const DISCRETION_WORDS = String.raw`(sole discretion|as determined by the (owner|licensor|landlord)|deemed (fit|necessary))`;
 const DISCRETION = [
-  /sole discretion/i,
-  /as determined by the (owner|licensor|landlord)/i,
-  /deemed (fit|necessary)/i,
+  new RegExp(String.raw`\b(deposit|deduct\w*)\b[\s\S]{0,120}${DISCRETION_WORDS}`, 'i'),
+  new RegExp(String.raw`${DISCRETION_WORDS}[\s\S]{0,120}\b(deposit|deduct\w*)\b`, 'i'),
 ];
 const FORFEIT = [/forfeit[^.]*deposit/i, /deposit[^.]*forfeit/i, /lose[^.]*deposit/i];
 const ENTRY = String.raw`(enter|entry|inspect\w*|visit\w*)`;

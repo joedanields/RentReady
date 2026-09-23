@@ -1,0 +1,18 @@
+{
+  "description": "Nine-month lock-in with deposit forfeiture, unequal notice, rent revisable at the owner's discretion.",
+  "interview": { "monthlyRent": "60000", "lockIn": "no", "noticePeriod": "1 month" },
+  "expectVerdicts": { "monthlyRent": "matches", "lockIn": "differs", "noticePeriod": "differs" },
+  "expectAbsent": ["SALE_OF_PROPERTY", "INVENTORY_HANDOVER"],
+  "expectRules": [
+    "IN-RENT-LOCKIN-LONG",
+    "IN-RENT-NOTICE-ASYMMETRIC",
+    "IN-RENT-INCREASE-UNCAPPED",
+    "IN-RENT-TDS",
+    "IN-RENT-REGISTRATION",
+    "IN-RENT-SALE-OF-PROPERTY"
+  ],
+  "questions": [
+    { "q": "Can I leave after six months?", "expect": "answered", "clauseLabels": ["4"] },
+    { "q": "Can I paint the walls?", "expect": "not_in_document" }
+  ]
+}

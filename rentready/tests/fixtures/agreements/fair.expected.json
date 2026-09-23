@@ -1,0 +1,11 @@
+{
+  "description": "A fair agreement: most protections present; only the 11-month registration note applies.",
+  "interview": { "monthlyRent": "25000", "deposit": "50000", "noticePeriod": "1 month", "repairs": "split" },
+  "expectVerdicts": { "monthlyRent": "matches", "deposit": "matches", "noticePeriod": "matches", "repairs": "matches" },
+  "expectAbsent": ["RENT_INCREASE", "INVENTORY_HANDOVER"],
+  "expectRules": ["IN-RENT-REGISTRATION"],
+  "questions": [
+    { "q": "How much notice must I give before leaving?", "expect": "answered", "clauseLabels": ["8"] },
+    { "q": "Can I keep a cat?", "expect": "not_in_document" }
+  ]
+}

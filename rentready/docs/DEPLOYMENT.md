@@ -34,7 +34,7 @@ npx wrangler pages dev dist   # optional: check _headers/_redirects exactly as P
 `.env.local` (gitignored) is only needed for `npm run eval`:
 ```
 GEMINI_API_KEY=your-key-for-eval-only
-VITE_DEFAULT_MODEL=gemini-2.5-flash
+VITE_DEFAULT_MODEL=gemini-3.6-flash
 ```
 The app itself never reads `GEMINI_API_KEY`; only `scripts/eval.ts` does.
 

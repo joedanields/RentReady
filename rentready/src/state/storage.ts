@@ -6,6 +6,7 @@
  */
 
 import { preferencesSchema, urlParamsSchema } from '../core/schemas';
+import { isKeyFormatValid } from '../core/gemini/client';
 import type { Preferences } from '../core/types';
 
 const PREFIX = 'rentready:';
@@ -75,7 +76,7 @@ export function saveDemoFlag(on: boolean): void {
 /** The remembered key, if the user opted in and it still looks like a Gemini key. */
 export function loadRememberedKey(): string | null {
   const raw = safe(() => window.sessionStorage.getItem(API_KEY_KEY), null);
-  return raw && /^AIza[0-9A-Za-z_-]{20,}$/.test(raw) ? raw : null;
+  return raw && isKeyFormatValid(raw) ? raw : null;
 }
 
 /** Writes the key for this tab only when remembering is on; otherwise makes sure it's gone. */

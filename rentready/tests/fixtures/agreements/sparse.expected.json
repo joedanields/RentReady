@@ -1,0 +1,27 @@
+{
+  "description": "A short, unnumbered agreement missing most protections.",
+  "interview": { "monthlyRent": "18000", "deposit": "36000", "repairs": "owner", "extras": ["Guests allowed"] },
+  "expectVerdicts": { "monthlyRent": "matches", "deposit": "matches", "repairs": "differs", "extras": "differs" },
+  "expectAbsent": [
+    "DEPOSIT_REFUND_TIMELINE",
+    "ENTRY_NOTICE",
+    "MAINTENANCE_CHARGES",
+    "NOTICE_TENANT",
+    "NOTICE_LANDLORD",
+    "SALE_OF_PROPERTY",
+    "DISPUTE_RESOLUTION"
+  ],
+  "expectRules": [
+    "IN-RENT-DEPOSIT-NO-TIMELINE",
+    "IN-RENT-ENTRY-NO-NOTICE",
+    "IN-RENT-REPAIRS-ON-TENANT",
+    "IN-RENT-MAINTENANCE-UNCLEAR",
+    "IN-RENT-GUEST-RESTRICTION",
+    "IN-RENT-SALE-OF-PROPERTY",
+    "IN-RENT-DISPUTE"
+  ],
+  "questions": [
+    { "q": "How much notice must I give before leaving?", "expect": "not_in_document" },
+    { "q": "Who pays if the geyser breaks?", "expect": "answered" }
+  ]
+}

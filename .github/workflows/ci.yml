@@ -25,7 +25,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - name: no secrets committed
-        run: "! git grep -nE 'AIza[0-9A-Za-z_-]{20,}'"
+        run: "! git grep -nE 'AIza[0-9A-Za-z_-]{20,}|AQ\\.[0-9A-Za-z._-]{30,}'"
       - run: npm audit --omit=dev --audit-level=high
       - if: failure()
         uses: actions/upload-artifact@v4

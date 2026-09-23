@@ -112,7 +112,7 @@ export interface AskResult {
 
 export interface AnalysisResult {
   /** Set when an AI read was attempted but failed, so the local report was shown instead. */
-  fallback?: 'NETWORK' | 'TIMEOUT';
+  fallback?: 'NETWORK' | 'TIMEOUT' | 'SERVICE_BUSY';
   /** 'local': rules only, no AI read — no match rows, checklist not checked. */
   mode: 'local' | 'ai';
   overview: string;

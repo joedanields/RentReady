@@ -6,12 +6,13 @@ export type { AppError };
 
 /** Redact common API key patterns from arbitrary strings */
 export function redact(text: string): string {
-  const KEY_PATTERN = /AIza[0-9A-Za-z_-]{20,}/g;
+  // Both Google key formats: classic "AIza…" and the newer "AQ.…".
+  const KEY_PATTERN = /\b(?:AIza[0-9A-Za-z_-]{20,}|AQ\.[0-9A-Za-z._-]{20,})/g;
   const GENERIC_KEY_PATTERN = /(api[_-]?key|key)\s*[=:]\s*['"]?[A-Za-z0-9_-]{8,}['"]?/gi;
   const BEARER_PATTERN = /(Bearer\s+)[A-Za-z0-9._~+/-]+/gi;
 
   return text
-    .replace(KEY_PATTERN, 'AIza••••••[redacted]')
+    .replace(KEY_PATTERN, m => `${m.slice(0, 4)}••••••[redacted]`)
     .replace(GENERIC_KEY_PATTERN, '$1=[redacted]')
     .replace(BEARER_PATTERN, '$1[redacted]');
 }
@@ -29,6 +30,8 @@ export type ErrorCode =
   | 'NETWORK'
   | 'BUDGET_EXHAUSTED'
   | 'TIMEOUT'
+  | 'MODEL_UNAVAILABLE'
+  | 'SERVICE_BUSY'
   | 'UNKNOWN';
 
 export const ERROR_MESSAGES: Record<ErrorCode, { message: string; retryable: boolean }> = {
@@ -77,6 +80,14 @@ export const ERROR_MESSAGES: Record<ErrorCode, { message: string; retryable: boo
     message: "You've used this session's analysis budget. Reload to reset, or use Demo mode.",
     retryable: false,
   },
+  SERVICE_BUSY: {
+    message: 'Gemini is busy right now. Try again in a minute, or use Demo mode.',
+    retryable: true,
+  },
+  MODEL_UNAVAILABLE: {
+    message: 'The AI model is not available for this key. Try again later, or use Demo mode.',
+    retryable: false,
+  },
   TIMEOUT: { message: 'The request took too long. Try again, or use Demo mode.', retryable: true },
   UNKNOWN: { message: 'Something went wrong. Please try again.', retryable: true },
 };
@@ -100,13 +111,17 @@ export function mapHttpError(status: number, body: string): AppError {
     case 401:
     case 403:
       return createAppError('KEY_REJECTED', body);
+    case 404:
+      // Usually a retired or unknown model id for this key.
+      return createAppError('MODEL_UNAVAILABLE', body);
     case 429:
       // Free-tier daily quota and per-minute rate limits share 429; only the body tells them apart.
       return createAppError(/quota/i.test(body) ? 'QUOTA' : 'RATE_LIMITED', body);
     case 500:
     case 502:
     case 503:
-      return createAppError('NETWORK', body);
+      // Google is overloaded, not the user's connection.
+      return createAppError('SERVICE_BUSY', body);
     default:
       return createAppError('UNKNOWN', body);
   }

@@ -277,16 +277,16 @@ export const ui = {
 
   // Key panel and AI errors
   keyFieldLabel: 'Your Gemini API key',
-  keyFieldHint: 'Starts with "AIza". A free key from Google AI Studio works.',
+  keyFieldHint: 'Starts with "AIza" or "AQ.". A free key from Google AI Studio works.',
   keySave: 'Use this key',
   keyInvalid:
-    "That doesn't look like a Gemini key. It should start with AIza and be about 39 characters.",
+    "That doesn't look like a Gemini key. It should start with AIza or AQ. — copy it again from Google AI Studio.",
   keySaved: 'Key set: {masked}',
   keyDeleteTip:
     'Tip: create a key just for RentReady, and delete it in AI Studio when you are done.',
   keyUseSample: 'Try the sample in demo mode instead',
   reportFallback:
-    "We couldn't reach Gemini, so this is the offline check. Try again when you're back online.",
+    "We couldn't get an answer from Gemini just now, so this is the offline check. Try again in a minute.",
   'aiError.NO_KEY':
     'Add your Gemini key to check this agreement with AI, or try the sample in demo mode.',
   'aiError.KEY_REJECTED':
@@ -299,6 +299,9 @@ export const ui = {
   'aiError.MODEL_INVALID_OUTPUT': 'Gemini sent back something we could not use. Please try again.',
   'aiError.NETWORK':
     'You seem to be offline. The offline checks still work; AI needs a connection.',
+  'aiError.MODEL_UNAVAILABLE':
+    'The AI model is not available for this key right now. Try again later, or use the sample in demo mode.',
+  'aiError.SERVICE_BUSY': 'Gemini is busy right now. Try again in a minute.',
   'aiError.TIMEOUT': 'That took too long. Please try again.',
   'aiError.BUDGET_EXHAUSTED':
     "You've used this session's AI calls. Reload the page to reset the counter, or keep using the offline checks.",

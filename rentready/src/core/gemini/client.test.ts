@@ -108,7 +108,7 @@ describe('generateContent', () => {
     const fetch = vi.fn().mockResolvedValue(textResponse('boom', 503));
     vi.stubGlobal('fetch', fetch);
 
-    await expect(generateContent(params)).rejects.toMatchObject({ code: 'NETWORK' });
+    await expect(generateContent(params)).rejects.toMatchObject({ code: 'SERVICE_BUSY' });
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 

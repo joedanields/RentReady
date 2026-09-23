@@ -53,10 +53,11 @@ describe('mapHttpError', () => {
     }
   });
 
-  it('maps 429 to RATE_LIMITED and 5xx to NETWORK', () => {
+  it('maps 429 to RATE_LIMITED, 404 to MODEL_UNAVAILABLE and 5xx to SERVICE_BUSY', () => {
+    expect(mapHttpError(404, 'model retired').code).toBe('MODEL_UNAVAILABLE');
     expect(mapHttpError(429, 'slow down').code).toBe('RATE_LIMITED');
     for (const s of [500, 502, 503]) {
-      expect(mapHttpError(s, 'boom').code).toBe('NETWORK');
+      expect(mapHttpError(s, 'boom').code).toBe('SERVICE_BUSY');
     }
   });
 

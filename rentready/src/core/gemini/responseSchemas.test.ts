@@ -39,6 +39,6 @@ describe('responseSchemas', () => {
   });
 
   it('defaults to the flash model', () => {
-    expect(DEFAULT_MODEL).toBe('gemini-2.5-flash');
+    expect(DEFAULT_MODEL).toBe('gemini-3.6-flash');
   });
 });

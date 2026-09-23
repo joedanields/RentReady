@@ -25,7 +25,7 @@ const res = await fetch(
 ```
 | Setting | Value |
 |---|---|
-| Model | user-selectable, default a current stable **Flash** model (e.g. `gemini-2.5-flash`; confirm the latest ID at build time) |
+| Model | user-selectable, default a current stable **Flash** model (currently `gemini-3.6-flash` — `gemini-2.5-flash` is closed to new users; confirm the latest ID at build time) |
 | Temperature | 0.2 (analysis, ask), 0.4 (negotiation wording) |
 | Max output tokens | analysis 8192, ask 1536, negotiation 1536 |
 | Timeout | 25 s; 1 retry on 429/5xx; 1 JSON-repair retry |

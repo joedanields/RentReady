@@ -238,7 +238,7 @@ describe('IN-RENT-DEPOSIT-DISCRETION', () => {
   it('fires on "sole discretion" when the AI checklist has no deduction basis', () => {
     expect(
       ids({
-        ...withText('Deductions at the sole discretion of the owner.'),
+        ...withText('At the sole discretion of the owner, deductions may be made.'),
         aiChecked: true,
         gaps: aiGaps({ DEPOSIT_DEDUCTION_BASIS: 'unclear' }),
       })
@@ -255,6 +255,11 @@ describe('IN-RENT-DEPOSIT-DISCRETION', () => {
   });
   it('stays silent without discretionary wording', () => {
     expect(ids()).not.toContain('IN-RENT-DEPOSIT-DISCRETION');
+  });
+  it('ignores owner discretion about something other than the deposit', () => {
+    expect(ids(withText('The Owner may revise the rent at his sole discretion.'))).not.toContain(
+      'IN-RENT-DEPOSIT-DISCRETION'
+    );
   });
 });
 

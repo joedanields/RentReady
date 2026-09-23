@@ -1,0 +1,18 @@
+{
+  "description": "Five-month deposit with owner-decided deductions, no refund deadline, entry at any time.",
+  "interview": { "monthlyRent": "45000", "deposit": "2 months", "noticePeriod": "1 month" },
+  "expectVerdicts": { "monthlyRent": "matches", "deposit": "differs", "noticePeriod": "matches" },
+  "expectAbsent": ["DEPOSIT_REFUND_TIMELINE", "ENTRY_NOTICE", "SALE_OF_PROPERTY"],
+  "expectRules": [
+    "IN-RENT-DEPOSIT-HIGH",
+    "IN-RENT-DEPOSIT-NO-TIMELINE",
+    "IN-RENT-DEPOSIT-DISCRETION",
+    "IN-RENT-ENTRY-NO-NOTICE",
+    "IN-RENT-REGISTRATION",
+    "IN-RENT-SALE-OF-PROPERTY"
+  ],
+  "questions": [
+    { "q": "When will I get my deposit back?", "expect": "answered", "clauseLabels": ["3"] },
+    { "q": "Is parking included?", "expect": "not_in_document" }
+  ]
+}

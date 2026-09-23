@@ -1,0 +1,11 @@
+{
+  "description": "Chennai leave and licence with named clauses and a schedule; power cut-off and self-help re-entry.",
+  "interview": { "monthlyRent": "22000", "deposit": "66000", "duration": "2 years", "noticePeriod": "1 month", "increase": "5%" },
+  "expectVerdicts": { "monthlyRent": "matches", "deposit": "matches", "duration": "matches", "noticePeriod": "matches", "increase": "matches" },
+  "expectAbsent": ["ESSENTIAL_SERVICES"],
+  "expectRules": ["IN-RENT-DEPOSIT-HIGH", "IN-RENT-ESSENTIAL-SERVICES", "IN-RENT-EVICTION-SELF-HELP"],
+  "questions": [
+    { "q": "Can the owner cut the electricity?", "expect": "needs_professional" },
+    { "q": "Is the fridge included?", "expect": "not_in_document" }
+  ]
+}

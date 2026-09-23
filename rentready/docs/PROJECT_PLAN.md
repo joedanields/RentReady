@@ -73,7 +73,7 @@ Legend: ⬜ todo · 🟨 doing · ✅ done · Est = focused hours
 - ✅ `vite-plugin-pwa`, offline verification, update prompt
 
 ## Phase 9 – Quality & eval (Day 11) · Est 6h
-- ⬜ Golden set (5 agreements + expected.json); `scripts/eval.ts`; metrics into README
+- 🟨 Golden set (5 agreements + expected.json); `scripts/eval.ts`; metrics into README — built; offline metrics 100%; live run limited by free-tier quota (HUMAN_TASKS §3)
 - ✅ Complete E2E suite incl. offline, key-leak and injection specs (injection covered at unit level)
 - 🟨 Coverage thresholds; bundle analysis; Lighthouse mobile — thresholds enforced, initial JS 132.8 KB gzip; Lighthouse needs the live URL
 - 🟨 Security checklist (`SECURITY.md` §6) fully ticked — all but the deployed-CSP check

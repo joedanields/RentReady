@@ -65,7 +65,7 @@ Because there's no server to hold a secret, **you bring your own free Gemini API
 - **Negotiation pack** – a polite WhatsApp/email message and suggested replacement wording for each change you want.
 - **Move-in kit** – inspection checklist, photo evidence guide, meter readings, and a deposit-return timeline.
 - **Works on a weak connection** – rule checks and the interview run fully offline; AI is an optional layer.
-- **Accessible and bilingual** – WCAG 2.2 AA target, English + Hindi, reading-level toggle, read-aloud.
+- **Accessible** – WCAG 2.2 AA target, keyboard-only use, screen-reader labels, light and dark themes, reading-level setting for AI explanations.
 
 ## Tech stack
 
@@ -97,7 +97,8 @@ npm run dev          # http://localhost:5173 — starts in Demo mode, no key nee
 | Offline | Interview → paste → full rule report with **zero network requests** (`e2e/report.spec.ts`) |
 | AI calls per report | 1 (analysis); Ask and message polish on demand; session budget of 12 |
 | Production dependencies with known vulnerabilities | 0 (`npm audit --omit=dev`) |
-| AI eval (golden set) | Not yet run — needs a real key (see `HUMAN_TASKS.md`) |
+| Golden set, offline | 5 agreements · rule recall **100%** (23/23) · rule precision **100%** (23/23) — enforced in CI |
+| Golden set, live (partial) | First run hit free-tier limits after one agreement: quote verification 13/13, latency 14.4 s. Full run: `npm run eval` (see `HUMAN_TASKS.md`) |
 
 ## Claims you can check
 
