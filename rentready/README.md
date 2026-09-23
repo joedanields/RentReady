@@ -82,20 +82,51 @@ npm run dev          # http://localhost:5173 — starts in Demo mode, no key nee
 |---|---|
 | `npm run lint` / `npm run typecheck` | ESLint (incl. jsx-a11y) / `tsc --noEmit` |
 | `npm test` / `npm run test:coverage` | Unit + component tests |
-| `npm run test:e2e` | Playwright + axe |
+| `npm run build && npm run test:e2e` | Playwright + axe against the production build and CSP |
 | `npm run eval` | Golden-set evaluation against the real Gemini API (needs a key in `.env.local`) |
 | `npm run build` | Static production build to `dist/` |
+
+## Quality at a glance
+
+| Measure | Result |
+|---|---|
+| Unit + component tests | **410** passing (Vitest + Testing Library, axe on every interview step and report state) |
+| End-to-end tests | **19 journeys × 2 viewports = 38** passing (Playwright + axe, desktop and Pixel 7) |
+| Coverage, `src/core` | 99.7% lines · 97.6% branches · **100%** for `verify/`, `rules/`, `interview/` (enforced in CI) |
+| Initial JS | **132.8 KB gzip** (budget 200 KB); pdf.js and mammoth load only when a file is chosen |
+| Offline | Interview → paste → full rule report with **zero network requests** (`e2e/report.spec.ts`) |
+| AI calls per report | 1 (analysis); Ask and message polish on demand; session budget of 12 |
+| Production dependencies with known vulnerabilities | 0 (`npm audit --omit=dev`) |
+| AI eval (golden set) | Not yet run — needs a real key (see `HUMAN_TASKS.md`) |
+
+## Claims you can check
+
+| Claim | Evidence |
+|---|---|
+| The model reports, the code judges | Verdicts in [`src/core/interview/compare.ts`](src/core/interview/compare.ts); rules in [`src/core/rules/rental.ts`](src/core/rules/rental.ts) read the agreement via [`extract.ts`](src/core/rules/extract.ts) |
+| Every quote is verified | [`src/core/verify/verifyQuote.ts`](src/core/verify/verifyQuote.ts); unverified evidence → "Couldn't confirm", uncited "covered" → unclear ([`analysis.ts`](src/core/analysis.ts)) |
+| Demo is as honest as live | [`src/sample/sampleData.test.ts`](src/sample/sampleData.test.ts) fails if any recorded quote stops verifying |
+| Prompt injection changes nothing | [`src/core/injection.test.ts`](src/core/injection.test.ts) |
+| The key never leaks | [`e2e/key.spec.ts`](e2e/key.spec.ts): not in page text, URL, storage or downloads; sent only as `x-goog-api-key` |
+| Exactly one external origin | CSP `connect-src 'self' https://generativelanguage.googleapis.com`; E2E runs under the production headers ([`vite.config.ts`](vite.config.ts), [`e2e/shell.spec.ts`](e2e/shell.spec.ts)) |
+| Hostile files are refused | Magic bytes must match the extension; size/page/char caps ([`src/core/parsing/intake.ts`](src/core/parsing/intake.ts), `e2e/upload.spec.ts`) |
 
 ## Judging criteria map
 
 | Criterion | Where to look |
 |---|---|
-| Problem statement alignment | This README, [`docs/PRD.md`](docs/PRD.md), [`docs/INTERVIEW_SPEC.md`](docs/INTERVIEW_SPEC.md) |
-| Code quality | Strict TS, `src/core` pure domain layer, [`CLAUDE.md`](CLAUDE.md) |
-| Security | [`docs/SECURITY.md`](docs/SECURITY.md) — BYOK key handling, CSP, no storage |
-| Efficiency | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — offline rules, one AI call, lazy parsers |
-| Testing | [`docs/TESTING.md`](docs/TESTING.md) |
-| Accessibility | [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md) |
+| Problem statement alignment | This README, [`docs/PRD.md`](docs/PRD.md), [`docs/INTERVIEW_SPEC.md`](docs/INTERVIEW_SPEC.md); the interview → report → message flow |
+| Code quality | Strict TS (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), pure `src/core` domain layer, [`docs/DECISIONS.md`](docs/DECISIONS.md) |
+| Security | [`docs/SECURITY.md`](docs/SECURITY.md), the "Claims you can check" table above |
+| Efficiency | Offline rules, one AI call per report, lazy parsers, 132.8 KB initial JS |
+| Testing | [`docs/TESTING.md`](docs/TESTING.md), `npm run test:coverage`, `npm run test:e2e` |
+| Accessibility | [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md); axe in component and E2E tests; keyboard-only interview journey |
+
+## Known limitations
+
+- Hindi is partial: the language switch works, but newer screens fall back to English until the dictionary is completed.
+- Read-aloud, the glossary and the PWA update prompt are not built yet.
+- Demo-mode AI responses are hand-authored against the sample agreement (and verification-tested), not recorded from Gemini.
 
 ## Documentation
 

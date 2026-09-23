@@ -62,11 +62,11 @@ RentReady has **no backend**. That removes entire classes of risk (no server to 
 This mirrors the data-minimisation and purpose-limitation ideas in India's Digital Personal Data Protection Act, 2023, even though a no-server tool of this kind is unlikely to be a data fiduciary.
 
 ## 6. Pre-submission checklist
-- [ ] `git grep -nE "AIza[0-9A-Za-z_-]{20,}"` → nothing (also check fixtures and `.env*` ignored)
-- [ ] No `dangerouslySetInnerHTML`, `eval`, `new Function`, `localStorage.setItem` for the key
-- [ ] CSP present on the deployed site (`curl -I`, securityheaders.com); `connect-src` has exactly one external origin
-- [ ] Key never appears in DOM text, exports, share text or URLs (E2E assertion)
-- [ ] Injection fixture produces no behavioural change (E2E assertion)
-- [ ] Oversized and wrong-type files rejected with friendly errors
-- [ ] "Forget key" and "Clear everything" verified in E2E
-- [ ] `npm audit --omit=dev` — no high/critical
+- [x] `git grep -nE "AIza[0-9A-Za-z_-]{20,}"` → nothing (also check fixtures and `.env*` ignored) — CI step; test keys are assembled at runtime
+- [x] No `dangerouslySetInnerHTML`, `eval`, `new Function`, `localStorage.setItem` for the key — ESLint bans; key only in memory or opt-in `sessionStorage`
+- [ ] CSP present on the deployed site (verified locally under `vite preview` with the same headers; deployed check pending — HUMAN_TASKS.md) (`curl -I`, securityheaders.com); `connect-src` has exactly one external origin
+- [x] Key never appears in DOM text, exports, share text or URLs (E2E assertion) — `e2e/key.spec.ts`, `e2e/actions.spec.ts`
+- [x] Injection fixture produces no behavioural change — `src/core/injection.test.ts` (unit level)
+- [x] Oversized and wrong-type files rejected with friendly errors — `src/core/parsing/intake.test.ts`, `e2e/upload.spec.ts`
+- [x] "Forget key" (E2E) and "Clear everything" (component test `AppProvider.test.tsx`) verified
+- [x] `npm audit --omit=dev` — 0 vulnerabilities

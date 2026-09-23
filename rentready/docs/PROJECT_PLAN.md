@@ -74,9 +74,9 @@ Legend: ⬜ todo · 🟨 doing · ✅ done · Est = focused hours
 
 ## Phase 9 – Quality & eval (Day 11) · Est 6h
 - ⬜ Golden set (5 agreements + expected.json); `scripts/eval.ts`; metrics into README
-- ⬜ Complete E2E suite incl. offline, key-leak and injection specs
-- ⬜ Coverage thresholds; bundle analysis; Lighthouse mobile
-- ⬜ Security checklist (`SECURITY.md` §6) fully ticked
+- ✅ Complete E2E suite incl. offline, key-leak and injection specs (injection covered at unit level)
+- 🟨 Coverage thresholds; bundle analysis; Lighthouse mobile — thresholds enforced, initial JS 132.8 KB gzip; Lighthouse needs the live URL
+- 🟨 Security checklist (`SECURITY.md` §6) fully ticked — all but the deployed-CSP check
 
 ## Phase 10 – Ship (Day 12–13) · Est 6h
 - ⬜ Final deploy; smoke test on a real phone on mobile data
@@ -144,3 +144,7 @@ Next: Phase 7 — negotiation pack and move-in kit.
 ### Day 1 (cont.) – 2026-09-23 — Phase 7
 Done: Negotiation pack rebuilt (raisable items incl. rule findings, radios, editable message, copy/share/.md, labelled suggested wording, optional AI polish); builder cites printed clause numbers. Move-in kit follows the agreement's dates, prints cleanly. 38 e2e incl. .md download contents and print emulation.
 Next: submission hardening — README, security checklist, bundle check, HUMAN_TASKS; Phase 8 items (Hindi, read-aloud, PWA) only if time remains.
+
+### Day 1 (cont.) – 2026-09-23 — Submission hardening
+Done: injection fixture tests; SECURITY §6 verified with commands and tests; bundle checked (132.8 KB initial gzip); README "Quality at a glance", "Claims you can check" and "Known limitations". 410 unit/component + 38 e2e.
+Remaining (owner): push, Cloudflare Pages, real-key eval, Lighthouse on the live URL, video, blog, post, submission (HUMAN_TASKS.md). Remaining (code, if time): Hindi dictionary for new screens, read-aloud, glossary, PWA update prompt.
