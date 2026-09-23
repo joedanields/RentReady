@@ -18,21 +18,21 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
     label: 'Which city is the place in?',
     hint: 'Used only to show "rules vary by state" context',
     type: 'text',
-    placeholder: 'e.g., Bengaluru, Mumbai, Delhi'
+    placeholder: 'e.g., Bengaluru, Mumbai, Delhi',
   },
   {
     key: 'monthlyRent',
     label: 'What monthly rent did you agree to?',
     hint: 'Examples: 40000, 40,000, ₹40k, Rs. 40000/-',
     type: 'money',
-    placeholder: '₹40,000'
+    placeholder: '₹40,000',
   },
   {
     key: 'deposit',
     label: 'What security deposit did you agree to?',
     hint: 'Amount or "N months of rent" — e.g., 80000 or "2 months"',
     type: 'money',
-    placeholder: '₹80,000 or 2 months'
+    placeholder: '₹80,000 or 2 months',
   },
   {
     key: 'duration',
@@ -43,8 +43,8 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
       { value: '11 months', label: '11 months' },
       { value: '1 year', label: '1 year' },
       { value: '2 years', label: '2 years' },
-      { value: 'other', label: 'Other' }
-    ]
+      { value: 'other', label: 'Other' },
+    ],
   },
   {
     key: 'lockIn',
@@ -54,8 +54,8 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
     options: [
       { value: 'no', label: 'No lock-in' },
       { value: 'yes', label: 'Yes, I was told a minimum stay' },
-      { value: 'not_sure', label: 'Not sure' }
-    ]
+      { value: 'not_sure', label: 'Not sure' },
+    ],
   },
   {
     key: 'noticePeriod',
@@ -67,8 +67,8 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
       { value: '1 month', label: '1 month' },
       { value: '2 months', label: '2 months' },
       { value: 'other', label: 'Other' },
-      { value: 'not_sure', label: 'Not sure' }
-    ]
+      { value: 'not_sure', label: 'Not sure' },
+    ],
   },
   {
     key: 'maintenance',
@@ -79,8 +79,8 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
       { value: 'me', label: 'Me (tenant)' },
       { value: 'owner', label: 'Owner' },
       { value: 'split', label: 'Split between us' },
-      { value: 'not_discussed', label: 'Not discussed' }
-    ]
+      { value: 'not_discussed', label: 'Not discussed' },
+    ],
   },
   {
     key: 'repairs',
@@ -91,8 +91,8 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
       { value: 'me', label: 'Me (tenant)' },
       { value: 'owner', label: 'Owner' },
       { value: 'split', label: 'Small ones me, big ones owner' },
-      { value: 'not_discussed', label: 'Not discussed' }
-    ]
+      { value: 'not_discussed', label: 'Not discussed' },
+    ],
   },
   {
     key: 'increase',
@@ -102,8 +102,8 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
     options: [
       { value: 'no', label: 'No increase mentioned' },
       { value: 'yes', label: 'Yes, a percentage was mentioned' },
-      { value: 'not_sure', label: 'Not sure' }
-    ]
+      { value: 'not_sure', label: 'Not sure' },
+    ],
   },
   {
     key: 'extras',
@@ -118,9 +118,9 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
       'Painting before move-in',
       'WiFi included',
       'Water tanker',
-      'Power backup'
-    ]
-  }
+      'Power backup',
+    ],
+  },
 ];
 
 export const INITIAL_INTERVIEW_ANSWERS: InterviewAnswers = {
@@ -133,5 +133,5 @@ export const INITIAL_INTERVIEW_ANSWERS: InterviewAnswers = {
   maintenance: null,
   repairs: null,
   increase: null,
-  extras: []
+  extras: [],
 };

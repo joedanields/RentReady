@@ -7,13 +7,13 @@ const CLAUSE_START_PATTERNS: RegExp[] = [
   /^(Clause|Article|Section|Schedule|Annexure|Annex)\s+\d+/i,
   /^\(?[a-z]\)\s/, // (a)  a)
   /^\(?[ivx]{1,4}\)\s/i, // (i) (iv)
-  /^[A-Z][A-Z\s]{2,7}$/ // ALL-CAPS heading <= 8 words
+  /^[A-Z][A-Z\s]{2,7}$/, // ALL-CAPS heading <= 8 words
 ];
 
 const SCHEDULE_PATTERNS: RegExp[] = [
   /^schedule\s+[a-z0-9]/i,
   /^annexure\s+[a-z0-9]/i,
-  /^annex\s+[a-z0-9]/i
+  /^annex\s+[a-z0-9]/i,
 ];
 
 /** Check if a line starts a new clause */
@@ -31,7 +31,9 @@ export function extractLabel(line: string): string | null {
   const num = trimmed.match(/^(\d+(?:\.\d+){0,3})[.)]?\s/);
   if (num) return num[1]!;
 
-  const named = trimmed.match(/^(?:Clause|Article|Section|Schedule|Annexure|Annex)\s+(\d+(?:\.\d+)?)/i);
+  const named = trimmed.match(
+    /^(?:Clause|Article|Section|Schedule|Annexure|Annex)\s+(\d+(?:\.\d+)?)/i
+  );
   if (named) return named[1]!;
 
   const letter = trimmed.match(/^\(?([a-z])\)\s/);
@@ -89,7 +91,11 @@ export function segmentClauses(rawText: string, pageTexts: string[] = []): Claus
   const rawClauses: RawClauseData[] = [];
   let current: RawClauseData | null = null;
 
-  const pushLine = (line: string, page: number | null, prev: RawClauseData | null): RawClauseData | null => {
+  const pushLine = (
+    line: string,
+    page: number | null,
+    prev: RawClauseData | null
+  ): RawClauseData | null => {
     const trimmed = line.trim();
     if (isClauseStart(trimmed) && prev && prev.text.trim()) {
       rawClauses.push(prev);
@@ -114,7 +120,11 @@ export function segmentClauses(rawText: string, pageTexts: string[] = []): Claus
   // Merge/split to sane lengths, assign stable ids
   const clauses: Clause[] = [];
   let buffer = '';
-  let bufferMeta: { label: string | null; heading: string | null; page: number | null } = { label: null, heading: null, page: null };
+  let bufferMeta: { label: string | null; heading: string | null; page: number | null } = {
+    label: null,
+    heading: null,
+    page: null,
+  };
   let order = 0;
 
   const emit = () => {
@@ -129,7 +139,7 @@ export function segmentClauses(rawText: string, pageTexts: string[] = []): Claus
         text: part,
         page: bufferMeta.page,
         pageEnd: bufferMeta.page,
-        order
+        order,
       });
     }
   };
@@ -166,7 +176,7 @@ export function serialiseClauses(clauses: Clause[]): string {
       const meta = [
         c.id,
         c.label ? `label=${c.label}` : null,
-        c.page !== null ? `page=${c.page}` : null
+        c.page !== null ? `page=${c.page}` : null,
       ]
         .filter(Boolean)
         .join(' | ');

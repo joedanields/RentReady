@@ -11,7 +11,8 @@ export const hi: Record<string, string> = {
   startCta: 'शुरू करें — 2 मिनट',
   demoCta: 'डेमो देखें',
   legalDisclaimer: 'RentReady आपके अनुबंध की व्याख्या करता है। यह कानूनी सलाह नहीं है।',
-  infoNotLegalAdvice: 'सूचना, कानूनी सलाह नहीं। भारत में किराये का कानून राज्य के अनुसार बदलता है। गंभीर मामलों के लिए वकील से बात करें।',
+  infoNotLegalAdvice:
+    'सूचना, कानूनी सलाह नहीं। भारत में किराये का कानून राज्य के अनुसार बदलता है। गंभीर मामलों के लिए वकील से बात करें।',
   howThisWorks: 'यह कैसे काम करता है',
   privacy: 'गोपनीयता',
   disclaimer: 'अस्वीकरण',
@@ -82,7 +83,8 @@ export const hi: Record<string, string> = {
   print: 'प्रिंट',
   settings: 'सेटिंग्स',
   keyManagement: 'API कुंजी',
-  keyExplanation: 'आपकी कुंजी इस टैब में ही रहती है। अनुबंध का टेक्स्ट सीधे आपके ब्राउज़र से Google की Gemini API को जाता है। हमारे पास कोई सर्वर नहीं है।',
+  keyExplanation:
+    'आपकी कुंजी इस टैब में ही रहती है। अनुबंध का टेक्स्ट सीधे आपके ब्राउज़र से Google की Gemini API को जाता है। हमारे पास कोई सर्वर नहीं है।',
   getKeyLink: 'Google AI Studio से कुंजी लें',
   keyMasked: 'छिपाई गई',
   showKey: 'दिखाएँ',
@@ -121,7 +123,7 @@ export const hi: Record<string, string> = {
   glossaryLeaveLicence: 'लीव एंड लाइसेंस',
   notCoveredLine: 'मालिक से इसे लिखित में जोड़ने के लिए कहें।',
   differsLine: 'आपने {agreed} पर सहमति कही थी। अनुबंध {written} लिखता है।',
-  escalationLine: 'यह हस्ताक्षर से पहले वकील से जाँच लेना उचित है।'
+  escalationLine: 'यह हस्ताक्षर से पहले वकील से जाँच लेना उचित है।',
 };
 
 const hiMap = hi as Readonly<Record<string, string>>;

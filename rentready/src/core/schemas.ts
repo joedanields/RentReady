@@ -6,7 +6,7 @@ import type {
   ModelAskResponse,
   ModelNegotiationResponse,
   InterviewAnswers,
-  ProtectionId
+  ProtectionId,
 } from './types.js';
 
 export const modelMatchFindingSchema = z.object({
@@ -15,7 +15,7 @@ export const modelMatchFindingSchema = z.object({
   writtenValue: z.string().nullable(),
   clauseId: z.string().nullable(),
   quote: z.string().nullable(),
-  ambiguity: z.string().nullable()
+  ambiguity: z.string().nullable(),
 });
 
 export const modelProtectionFindingSchema = z.object({
@@ -23,13 +23,13 @@ export const modelProtectionFindingSchema = z.object({
   state: z.enum(['present', 'absent', 'unclear']),
   summary: z.string().nullable(),
   clauseId: z.string().nullable(),
-  quote: z.string().nullable()
+  quote: z.string().nullable(),
 });
 
 export const modelAnalysisResponseSchema = z.object({
   overview: z.string(),
   matchFindings: z.array(modelMatchFindingSchema),
-  protectionFindings: z.array(modelProtectionFindingSchema)
+  protectionFindings: z.array(modelProtectionFindingSchema),
 });
 
 export const modelAskResponseSchema = z.object({
@@ -37,17 +37,19 @@ export const modelAskResponseSchema = z.object({
   answer: z.string(),
   citations: z.array(z.object({ clauseId: z.string(), quote: z.string() })),
   missingInfo: z.array(z.string()),
-  suggestedQuestions: z.array(z.string())
+  suggestedQuestions: z.array(z.string()),
 });
 
 export const modelNegotiationResponseSchema = z.object({
   message: z.string(),
-  items: z.array(z.object({
-    rowId: z.string(),
-    ask: z.string(),
-    reason: z.string(),
-    suggestedWording: z.string()
-  }))
+  items: z.array(
+    z.object({
+      rowId: z.string(),
+      ask: z.string(),
+      reason: z.string(),
+      suggestedWording: z.string(),
+    })
+  ),
 });
 
 export const interviewAnswersSchema: z.ZodType<InterviewAnswers> = z.object({
@@ -60,7 +62,7 @@ export const interviewAnswersSchema: z.ZodType<InterviewAnswers> = z.object({
   maintenance: z.string().nullable(),
   repairs: z.string().nullable(),
   increase: z.string().nullable(),
-  extras: z.array(z.string())
+  extras: z.array(z.string()),
 });
 
 export const protectionIdSchema: z.ZodType<ProtectionId> = z.enum([
@@ -83,7 +85,7 @@ export const protectionIdSchema: z.ZodType<ProtectionId> = z.enum([
   'SALE_OF_PROPERTY',
   'REGISTRATION_STAMPING',
   'INVENTORY_HANDOVER',
-  'DISPUTE_RESOLUTION'
+  'DISPUTE_RESOLUTION',
 ]);
 
 export const clauseSchema = z.object({
@@ -93,7 +95,7 @@ export const clauseSchema = z.object({
   text: z.string(),
   page: z.number().nullable(),
   pageEnd: z.number().nullable(),
-  order: z.number()
+  order: z.number(),
 });
 
 export const verifiedQuoteSchema = z.object({
@@ -101,18 +103,25 @@ export const verifiedQuoteSchema = z.object({
   quote: z.string(),
   status: z.enum(['verified', 'fuzzy', 'unverified']),
   start: z.number().optional(),
-  end: z.number().optional()
+  end: z.number().optional(),
 });
 
 export const urlParamsSchema = z.object({
   demo: z.enum(['1', 'true']).optional(),
-  lang: z.enum(['en', 'hi']).optional()
+  lang: z.enum(['en', 'hi']).optional(),
+});
+
+/** Stored preferences are read back from localStorage, so they're untrusted like any input. */
+export const preferencesSchema = z.object({
+  language: z.enum(['en', 'hi']),
+  readingLevel: z.enum(['simple', 'standard']),
+  theme: z.enum(['light', 'dark', 'system']),
 });
 
 export const fileInputSchema = z.object({
   name: z.string(),
   type: z.string(),
-  size: z.number()
+  size: z.number(),
 });
 
 export function validateModelAnalysis(data: unknown): ModelAnalysisResponse {

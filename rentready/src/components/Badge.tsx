@@ -28,7 +28,7 @@ const toneClasses: Record<BadgeTone, string> = {
   fuzzy: 'bg-yellow-100 text-yellow-900 border-yellow-300',
   unverified: 'bg-gray-100 text-gray-600 border-gray-300',
   high: 'bg-red-100 text-red-800 border-red-300',
-  medium: 'bg-amber-100 text-amber-900 border-amber-300'
+  medium: 'bg-amber-100 text-amber-900 border-amber-300',
 };
 
 const toneIcons: Record<BadgeTone, string> = {
@@ -43,13 +43,13 @@ const toneIcons: Record<BadgeTone, string> = {
   fuzzy: '~',
   unverified: '!',
   high: '▲',
-  medium: '◆'
+  medium: '◆',
 };
 
 export function Badge({
   tone,
   label,
-  className
+  className,
 }: {
   tone: BadgeTone;
   label: string;

@@ -95,7 +95,11 @@ export function KeyPanel() {
             className="min-h-[44px] flex-1 rounded-lg border border-border px-3"
           />
           {!state.key.key && (
-            <button type="button" onClick={() => setShow(v => !v)} className="min-h-[44px] px-2 text-muted">
+            <button
+              type="button"
+              onClick={() => setShow(v => !v)}
+              className="min-h-[44px] px-2 text-muted"
+            >
               {show ? t('hideKey') : t('showKey')}
             </button>
           )}

@@ -14,122 +14,129 @@ export const PROTECTIONS: ProtectionDef[] = [
     id: 'DEPOSIT_AMOUNT',
     title: 'Deposit amount stated in rupees',
     whyItMatters: 'Prevents "two months" arguments later',
-    requestWording: 'The Security Deposit is ₹____ (____ months of rent).'
+    requestWording: 'The Security Deposit is ₹____ (____ months of rent).',
   },
   {
     id: 'DEPOSIT_REFUND_TIMELINE',
     title: 'When the deposit comes back',
     whyItMatters: 'The top dispute cause',
-    requestWording: 'The deposit shall be refunded within 15 days of handing over vacant possession.'
+    requestWording:
+      'The deposit shall be refunded within 15 days of handing over vacant possession.',
   },
   {
     id: 'DEPOSIT_DEDUCTION_BASIS',
     title: 'What can be deducted',
     whyItMatters: 'Stops open-ended deductions',
-    requestWording: 'Deductions limited to unpaid rent, unpaid utility bills and damage beyond normal wear and tear, supported by bills.'
+    requestWording:
+      'Deductions limited to unpaid rent, unpaid utility bills and damage beyond normal wear and tear, supported by bills.',
   },
   {
     id: 'RENT_AMOUNT',
     title: 'Monthly rent',
     whyItMatters: '—',
-    requestWording: null
+    requestWording: null,
   },
   {
     id: 'RENT_DUE_DATE',
     title: 'Due date and late fee',
     whyItMatters: 'Avoids surprise penalties',
-    requestWording: 'Rent is payable by the ____ of each month; late fee, if any, shall not exceed ____.'
+    requestWording:
+      'Rent is payable by the ____ of each month; late fee, if any, shall not exceed ____.',
   },
   {
     id: 'RENT_INCREASE',
     title: 'Increase on renewal',
     whyItMatters: 'Predictable costs',
-    requestWording: 'Rent may be increased by not more than ____% on renewal.'
+    requestWording: 'Rent may be increased by not more than ____% on renewal.',
   },
   {
     id: 'MAINTENANCE_CHARGES',
     title: 'Who pays maintenance, water, power, property tax',
     whyItMatters: 'Hidden monthly costs',
-    requestWording: 'Society maintenance and property tax: Owner. Electricity and water usage: Tenant.'
+    requestWording:
+      'Society maintenance and property tax: Owner. Electricity and water usage: Tenant.',
   },
   {
     id: 'REPAIRS_MAJOR',
     title: 'Who handles major repairs',
     whyItMatters: 'Expensive if unclear',
-    requestWording: 'Structural and major repairs are the Owner\'s responsibility.'
+    requestWording: "Structural and major repairs are the Owner's responsibility.",
   },
   {
     id: 'REPAIRS_MINOR',
     title: 'Who handles small repairs',
     whyItMatters: 'Daily friction',
-    requestWording: 'Minor repairs up to ₹____ per instance are the Tenant\'s responsibility.'
+    requestWording: "Minor repairs up to ₹____ per instance are the Tenant's responsibility.",
   },
   {
     id: 'NOTICE_TENANT',
     title: 'Notice you must give',
     whyItMatters: 'Planning your move',
-    requestWording: null
+    requestWording: null,
   },
   {
     id: 'NOTICE_LANDLORD',
     title: 'Notice the owner must give',
     whyItMatters: 'Protects you from sudden exit',
-    requestWording: 'The Owner shall give not less than ____ days\' written notice.'
+    requestWording: "The Owner shall give not less than ____ days' written notice.",
   },
   {
     id: 'LOCK_IN',
     title: 'Minimum stay and its cost',
     whyItMatters: 'Traps you or your deposit',
-    requestWording: 'Lock-in period: ____ months, applicable to both parties.'
+    requestWording: 'Lock-in period: ____ months, applicable to both parties.',
   },
   {
     id: 'ENTRY_NOTICE',
     title: 'Notice before the owner visits',
     whyItMatters: 'Privacy',
-    requestWording: 'The Owner shall give at least 24 hours\' written notice before entry, except in an emergency.'
+    requestWording:
+      "The Owner shall give at least 24 hours' written notice before entry, except in an emergency.",
   },
   {
     id: 'ESSENTIAL_SERVICES',
     title: 'Water and power cannot be cut',
     whyItMatters: 'Safety',
-    requestWording: 'Essential supplies shall not be withheld under any circumstances.'
+    requestWording: 'Essential supplies shall not be withheld under any circumstances.',
   },
   {
     id: 'SUBLET_GUESTS',
     title: 'Flatmates and guests',
     whyItMatters: 'Affects who can live with you',
-    requestWording: 'The Tenant may share the premises with ____ (named flatmates).'
+    requestWording: 'The Tenant may share the premises with ____ (named flatmates).',
   },
   {
     id: 'RENEWAL',
     title: 'How renewal works',
     whyItMatters: 'Avoids a scramble at month 11',
-    requestWording: 'Either party shall confirm renewal at least 30 days before expiry.'
+    requestWording: 'Either party shall confirm renewal at least 30 days before expiry.',
   },
   {
     id: 'SALE_OF_PROPERTY',
     title: 'If the property is sold',
-    whyItMatters: 'Your tenancy\'s survival',
-    requestWording: 'This agreement shall continue to bind any new owner for the remaining term.'
+    whyItMatters: "Your tenancy's survival",
+    requestWording: 'This agreement shall continue to bind any new owner for the remaining term.',
   },
   {
     id: 'REGISTRATION_STAMPING',
     title: 'Registration, stamp duty, who pays',
     whyItMatters: 'Enforceability and cost',
-    requestWording: 'The agreement shall be registered; stamp duty and registration charges shall be borne ____.'
+    requestWording:
+      'The agreement shall be registered; stamp duty and registration charges shall be borne ____.',
   },
   {
     id: 'INVENTORY_HANDOVER',
     title: 'List of furniture and fittings, condition at handover',
     whyItMatters: 'Deposit protection',
-    requestWording: 'An inventory with photographs, signed by both parties, is annexed as Schedule ____.'
+    requestWording:
+      'An inventory with photographs, signed by both parties, is annexed as Schedule ____.',
   },
   {
     id: 'DISPUTE_RESOLUTION',
     title: 'Where disputes are decided',
     whyItMatters: 'Cost of a fight',
-    requestWording: null
-  }
+    requestWording: null,
+  },
 ];
 
 export const PROTECTION_IDS = PROTECTIONS.map(p => p.id) as ProtectionId[];
@@ -147,7 +154,7 @@ export function buildGapRows(
 ): GapRow[] {
   return PROTECTIONS.map(protection => {
     const finding = modelFindings.find(f => f.id === protection.id);
-    const evidence = finding?.clauseId ? verifiedQuotes.get(finding.clauseId) ?? null : null;
+    const evidence = finding?.clauseId ? (verifiedQuotes.get(finding.clauseId) ?? null) : null;
 
     return {
       id: protection.id,
@@ -155,7 +162,7 @@ export function buildGapRows(
       state: finding?.state ?? 'unclear',
       evidence,
       whyItMatters: protection.whyItMatters,
-      requestWording: protection.requestWording
+      requestWording: protection.requestWording,
     };
   });
 }

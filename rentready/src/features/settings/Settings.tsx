@@ -1,15 +1,14 @@
 /** Settings — language, reading level, theme, key, budget, danger zone */
 
-
-import { useApp } from '../../state/AppProvider';
+import { useApp, useClearEverything } from '../../state/AppProvider';
 import { t } from '../../i18n';
-import { setLang } from '../../i18n';
 import { Button } from '../../components/Button';
 import { KeyPanel } from '../key/KeyPanel';
 
 export function Settings({ onReset }: { onReset: () => void }) {
   const { state, dispatch } = useApp();
   const { preferences, budget } = state;
+  const clearEverything = useClearEverything();
 
   return (
     <section aria-labelledby="settings-title" className="space-y-6 pt-2">
@@ -28,10 +27,11 @@ export function Settings({ onReset }: { onReset: () => void }) {
               aria-checked={preferences.language === lang}
               onClick={() => {
                 dispatch({ type: 'SET_PREFERENCES', prefs: { language: lang } });
-                setLang(lang);
               }}
               className={`min-h-[44px] rounded-lg border px-4 ${
-                preferences.language === lang ? 'border-primary bg-primary text-white' : 'border-border'
+                preferences.language === lang
+                  ? 'border-primary bg-primary text-white'
+                  : 'border-border'
               }`}
             >
               {lang === 'en' ? 'English' : 'हिन्दी'}
@@ -51,7 +51,9 @@ export function Settings({ onReset }: { onReset: () => void }) {
               aria-checked={preferences.readingLevel === level}
               onClick={() => dispatch({ type: 'SET_PREFERENCES', prefs: { readingLevel: level } })}
               className={`min-h-[44px] rounded-lg border px-4 ${
-                preferences.readingLevel === level ? 'border-primary bg-primary text-white' : 'border-border'
+                preferences.readingLevel === level
+                  ? 'border-primary bg-primary text-white'
+                  : 'border-border'
               }`}
             >
               {level === 'simple' ? t('readingLevelSimple') : t('readingLevelStandard')}
@@ -71,18 +73,22 @@ export function Settings({ onReset }: { onReset: () => void }) {
               aria-checked={preferences.theme === theme}
               onClick={() => dispatch({ type: 'SET_PREFERENCES', prefs: { theme } })}
               className={`min-h-[44px] rounded-lg border px-4 ${
-                preferences.theme === theme ? 'border-primary bg-primary text-white' : 'border-border'
+                preferences.theme === theme
+                  ? 'border-primary bg-primary text-white'
+                  : 'border-border'
               }`}
             >
-              {theme === 'light' ? t('themeLight') : theme === 'dark' ? t('themeDark') : t('themeSystem')}
+              {theme === 'light'
+                ? t('themeLight')
+                : theme === 'dark'
+                  ? t('themeDark')
+                  : t('themeSystem')}
             </button>
           ))}
         </div>
       </div>
 
-      <p className="text-sm text-muted">
-        {t('offlineNote')}
-      </p>
+      <p className="text-sm text-muted">{t('offlineNote')}</p>
 
       <KeyPanel />
 
@@ -96,7 +102,7 @@ export function Settings({ onReset }: { onReset: () => void }) {
         <Button
           variant="danger"
           onClick={() => {
-            dispatch({ type: 'RESET_ALL' });
+            clearEverything();
             onReset();
           }}
         >

@@ -17,11 +17,13 @@ const item = (str: string, hasEOL: boolean, y: number): TextItem => ({
   width: 1,
   height: 1,
   fontName: 'font',
-  dir: 'ltr'
+  dir: 'ltr',
 });
 
-const LONG_A = 'The tenant agrees to pay a monthly rent of forty thousand rupees in advance within the first week of every month without fail and without any deductions.';
-const LONG_B = 'The tenant shall give one month written notice before vacating the premises at the end of the term without incurring any penalty whatsoever.';
+const LONG_A =
+  'The tenant agrees to pay a monthly rent of forty thousand rupees in advance within the first week of every month without fail and without any deductions.';
+const LONG_B =
+  'The tenant shall give one month written notice before vacating the premises at the end of the term without incurring any penalty whatsoever.';
 
 const file = (overrides: Partial<File> = {}): File =>
   ({
@@ -29,7 +31,7 @@ const file = (overrides: Partial<File> = {}): File =>
     type: '',
     name: 'agreement.pdf',
     arrayBuffer: async () => new ArrayBuffer(0),
-    ...overrides
+    ...overrides,
   }) as unknown as File;
 
 function pdfWithPages(itemsByPage: TextItem[][], numPages = itemsByPage.length) {
@@ -37,9 +39,9 @@ function pdfWithPages(itemsByPage: TextItem[][], numPages = itemsByPage.length) 
     promise: Promise.resolve({
       numPages,
       getPage: vi.fn(async (i: number) => ({
-        getTextContent: async () => ({ items: itemsByPage[i - 1] ?? [] })
-      }))
-    })
+        getTextContent: async () => ({ items: itemsByPage[i - 1] ?? [] }),
+      })),
+    }),
   } as never);
 }
 
@@ -49,7 +51,9 @@ beforeEach(() => {
 
 describe('parsePdf', () => {
   it('segments a single-page PDF into clauses', async () => {
-    pdfWithPages([[item('1.', true, 40), item(LONG_A, true, 40), item('2.', true, 90), item(LONG_B, true, 90)]]);
+    pdfWithPages([
+      [item('1.', true, 40), item(LONG_A, true, 40), item('2.', true, 90), item(LONG_B, true, 90)],
+    ]);
 
     const result = await parsePdf(file());
     expect(result.pageCount).toBe(1);
@@ -61,7 +65,7 @@ describe('parsePdf', () => {
   it('tracks page numbers across multiple pages', async () => {
     pdfWithPages([
       [item('1.', true, 40), item(LONG_A, true, 40)],
-      [item('2.', true, 40), item(LONG_B, true, 40)]
+      [item('2.', true, 40), item(LONG_B, true, 40)],
     ]);
 
     const result = await parsePdf(file());

@@ -35,7 +35,7 @@ describe('LIMITS', () => {
       'MAX_QUOTE_LENGTH',
       'ANALYSIS_TIMEOUT',
       'MAX_ANALYSIS_TOKENS',
-      'MAX_SMALL_CALL_TOKENS'
+      'MAX_SMALL_CALL_TOKENS',
     ]);
   });
 });

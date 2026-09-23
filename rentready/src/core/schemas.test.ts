@@ -12,17 +12,24 @@ import {
   validateInterviewAnswers,
   validateClauses,
   validateUrlParams,
-  validateFileInput
+  validateFileInput,
 } from './schemas';
 
 const analysis = {
   overview: 'ok',
   matchFindings: [
-    { key: 'monthlyRent', found: true, writtenValue: '₹40,000', clauseId: 'c1', quote: null, ambiguity: null }
+    {
+      key: 'monthlyRent',
+      found: true,
+      writtenValue: '₹40,000',
+      clauseId: 'c1',
+      quote: null,
+      ambiguity: null,
+    },
   ],
   protectionFindings: [
-    { id: 'ENTRY_NOTICE', state: 'absent', summary: null, clauseId: null, quote: null }
-  ]
+    { id: 'ENTRY_NOTICE', state: 'absent', summary: null, clauseId: null, quote: null },
+  ],
 };
 
 const ask = {
@@ -30,12 +37,19 @@ const ask = {
   answer: 'Rent is due on the 5th.',
   citations: [{ clauseId: 'c1', quote: 'due on the fifth day' }],
   missingInfo: [],
-  suggestedQuestions: ['When is rent due?']
+  suggestedQuestions: ['When is rent due?'],
 };
 
 const negotiation = {
   message: 'Hi, please change it.',
-  items: [{ rowId: 'match-monthlyRent', ask: 'About rent', reason: 'Mismatch', suggestedWording: 'Rent: ₹40,000.' }]
+  items: [
+    {
+      rowId: 'match-monthlyRent',
+      ask: 'About rent',
+      reason: 'Mismatch',
+      suggestedWording: 'Rent: ₹40,000.',
+    },
+  ],
 };
 
 const interview = {
@@ -48,7 +62,7 @@ const interview = {
   maintenance: 'owner',
   repairs: 'split',
   increase: 'no',
-  extras: ['Parking included']
+  extras: ['Parking included'],
 };
 
 describe('schema success paths', () => {
@@ -59,7 +73,9 @@ describe('schema success paths', () => {
 
   it('parses valid ask and negotiation responses', () => {
     expect(modelAskResponseSchema.parse(ask).status).toBe('answered');
-    expect(validateModelAsk({ ...ask, status: 'needs_professional' }).status).toBe('needs_professional');
+    expect(validateModelAsk({ ...ask, status: 'needs_professional' }).status).toBe(
+      'needs_professional'
+    );
     expect(modelNegotiationResponseSchema.parse(negotiation).message).toBe('Hi, please change it.');
     expect(validateModelNegotiation(negotiation).items).toHaveLength(1);
   });
@@ -69,7 +85,15 @@ describe('schema success paths', () => {
   });
 
   it('parses a valid clause', () => {
-    const clause = { id: 'c1', label: '1.', heading: null, text: 'text', page: 1, pageEnd: 2, order: 1 };
+    const clause = {
+      id: 'c1',
+      label: '1.',
+      heading: null,
+      text: 'text',
+      page: 1,
+      pageEnd: 2,
+      order: 1,
+    };
     expect(clauseSchema.parse(clause).order).toBe(1);
     expect(validateClauses([clause])).toHaveLength(1);
   });
@@ -83,7 +107,11 @@ describe('schema success paths', () => {
   it('parses url params and file input', () => {
     expect(validateUrlParams({}).lang).toBeUndefined();
     expect(validateUrlParams({ demo: '1', lang: 'hi' })).toEqual({ demo: '1', lang: 'hi' });
-    expect(validateFileInput({ name: 'a.pdf', type: 'pdf', size: 1024 })).toEqual({ name: 'a.pdf', type: 'pdf', size: 1024 });
+    expect(validateFileInput({ name: 'a.pdf', type: 'pdf', size: 1024 })).toEqual({
+      name: 'a.pdf',
+      type: 'pdf',
+      size: 1024,
+    });
   });
 
   it('accepts every protection id', () => {
@@ -99,7 +127,12 @@ describe('schema rejection paths', () => {
   });
 
   it('rejects a bad protection state', () => {
-    expect(() => modelAnalysisResponseSchema.parse({ ...analysis, protectionFindings: [{ id: 'ENTRY_NOTICE', state: 'maybe' }] })).toThrow();
+    expect(() =>
+      modelAnalysisResponseSchema.parse({
+        ...analysis,
+        protectionFindings: [{ id: 'ENTRY_NOTICE', state: 'maybe' }],
+      })
+    ).toThrow();
   });
 
   it('rejects an unknown ask status', () => {
@@ -107,7 +140,9 @@ describe('schema rejection paths', () => {
   });
 
   it('rejects negotiation rows missing fields', () => {
-    expect(() => modelNegotiationResponseSchema.parse({ message: 'x', items: [{ rowId: 'a' }] })).toThrow();
+    expect(() =>
+      modelNegotiationResponseSchema.parse({ message: 'x', items: [{ rowId: 'a' }] })
+    ).toThrow();
   });
 
   it('rejects interview answers with bad extras or missing keys', () => {

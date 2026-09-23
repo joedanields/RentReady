@@ -10,8 +10,8 @@ const CLAUSES: Clause[] = [
     text: 'The rent is payable on the fifth day of every month in advance.',
     page: 1,
     pageEnd: 1,
-    order: 1
-  }
+    order: 1,
+  },
 ];
 
 const response = (status: string, citations: Array<{ clauseId: string; quote: string }>) => ({
@@ -19,14 +19,16 @@ const response = (status: string, citations: Array<{ clauseId: string; quote: st
   answer: 'Some answer',
   citations,
   missingInfo: ['break clause'],
-  suggestedQuestions: ['Is there a break clause?']
+  suggestedQuestions: ['Is there a break clause?'],
 });
 
 describe('processAskResponse', () => {
   it('keeps answered status when at least one citation verifies', () => {
     const out = processAskResponse({
       clauses: CLAUSES,
-      modelResponse: response('answered', [{ clauseId: 'c001', quote: 'rent is payable on the fifth day' }])
+      modelResponse: response('answered', [
+        { clauseId: 'c001', quote: 'rent is payable on the fifth day' },
+      ]),
     });
     expect(out.status).toBe('answered');
     expect(out.citations).toHaveLength(1);
@@ -36,7 +38,9 @@ describe('processAskResponse', () => {
   it('downgrades answered to not_in_document when no citation verifies', () => {
     const out = processAskResponse({
       clauses: CLAUSES,
-      modelResponse: response('answered', [{ clauseId: 'c001', quote: 'completely made up quote' }])
+      modelResponse: response('answered', [
+        { clauseId: 'c001', quote: 'completely made up quote' },
+      ]),
     });
     expect(out.status).toBe('not_in_document');
     expect(out.citations).toEqual([]);
@@ -49,15 +53,17 @@ describe('processAskResponse', () => {
       clauses: CLAUSES,
       modelResponse: response('answered', [
         { clauseId: 'c999', quote: 'rent is payable on the fifth day' },
-        { clauseId: 'c001', quote: 'rent is payable on the fifth day' }
-      ])
+        { clauseId: 'c001', quote: 'rent is payable on the fifth day' },
+      ]),
     });
     expect(out.citations).toHaveLength(1);
     expect(out.citations[0]!.clauseId).toBe('c001');
   });
 
   it('passes through not_in_document and needs_professional with all citations', () => {
-    const resp = response('needs_professional', [{ clauseId: 'c001', quote: 'made up quote body text' }]);
+    const resp = response('needs_professional', [
+      { clauseId: 'c001', quote: 'made up quote body text' },
+    ]);
     const out = processAskResponse({ clauses: CLAUSES, modelResponse: resp });
     expect(out.status).toBe('needs_professional');
     expect(out.citations).toHaveLength(1);

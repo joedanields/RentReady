@@ -1,11 +1,6 @@
 /** Gemini client — plain fetch, no SDK. All errors redacted. Key never logged. */
 
-import {
-  createAppError,
-  mapHttpError,
-  redact,
-  type AppError
-} from './errors.js';
+import { createAppError, mapHttpError, redact, type AppError } from './errors.js';
 import { LIMITS } from '../limits.js';
 
 const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta';
@@ -62,7 +57,7 @@ export async function generateContent(params: GenerateParams): Promise<GeminiRes
     responseSchema,
     temperature,
     maxOutputTokens,
-    timeoutMs = LIMITS.ANALYSIS_TIMEOUT
+    timeoutMs = LIMITS.ANALYSIS_TIMEOUT,
   } = params;
 
   const url = `${GEMINI_ENDPOINT}/models/${encodeURIComponent(model)}:generateContent`;
@@ -70,14 +65,14 @@ export async function generateContent(params: GenerateParams): Promise<GeminiRes
   const body: Record<string, unknown> = {
     systemInstruction: { parts: [{ text: system }] },
     contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-    generationConfig: { temperature, maxOutputTokens }
+    generationConfig: { temperature, maxOutputTokens },
   };
   if (responseSchema) {
     body.generationConfig = {
       temperature,
       maxOutputTokens,
       responseMimeType: 'application/json',
-      responseSchema
+      responseSchema,
     };
   }
 
@@ -94,9 +89,9 @@ export async function generateContent(params: GenerateParams): Promise<GeminiRes
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-goog-api-key': apiKey
+            'x-goog-api-key': apiKey,
           },
-          body: JSON.stringify(body)
+          body: JSON.stringify(body),
         },
         timeoutMs
       );
@@ -160,9 +155,7 @@ function extractTextFromEnvelope(parsed: unknown, rawBody: string): string {
     if (first && typeof first === 'object') {
       const content = first.content;
       if (content?.parts) {
-        const text = content.parts
-          .map(p => (typeof p.text === 'string' ? p.text : ''))
-          .join('');
+        const text = content.parts.map(p => (typeof p.text === 'string' ? p.text : '')).join('');
         if (text.trim()) return text.trim();
       }
       // Safety block

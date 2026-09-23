@@ -1,6 +1,12 @@
 /** Negotiation message builder — pure functions */
 
-import type { InterviewAnswers, MatchRow, GapRow, NegotiationResult, NegotiationItem } from '../types.js';
+import type {
+  InterviewAnswers,
+  MatchRow,
+  GapRow,
+  NegotiationResult,
+  NegotiationItem,
+} from '../types.js';
 
 export interface NegotiationInput {
   matches: MatchRow[];
@@ -40,7 +46,7 @@ export function buildNegotiationLocal(input: NegotiationInput): NegotiationResul
         rowId,
         ask: buildAskFromMatch(matchRow, tone),
         reason: buildReasonFromMatch(matchRow),
-        suggestedWording: buildWordingFromMatch(matchRow)
+        suggestedWording: buildWordingFromMatch(matchRow),
       });
     } else {
       // GapRow - absent protection
@@ -51,7 +57,7 @@ export function buildNegotiationLocal(input: NegotiationInput): NegotiationResul
         rowId,
         ask: buildAskFromGap(gapRow, tone),
         reason: gapRow.whyItMatters,
-        suggestedWording: gapRow.requestWording ?? 'Please add a clause covering this.'
+        suggestedWording: gapRow.requestWording ?? 'Please add a clause covering this.',
       });
     }
   }
@@ -119,22 +125,36 @@ function getTopicLabel(key: string): string {
     maintenance: 'maintenance charges',
     repairs: 'repairs responsibility',
     increase: 'rent increase',
-    extras: 'extra promises'
+    extras: 'extra promises',
   };
   return labels[key] || key;
 }
 
-function buildMessage(items: NegotiationItem[], tone: 'polite' | 'direct', channel: 'whatsapp' | 'email'): string {
+function buildMessage(
+  items: NegotiationItem[],
+  tone: 'polite' | 'direct',
+  channel: 'whatsapp' | 'email'
+): string {
   if (items.length === 0) return '';
 
   const isWhatsApp = channel === 'whatsapp';
-  const greeting = tone === 'polite'
-    ? (isWhatsApp ? 'Hi, ' : 'Dear [Owner/Broker],\n\n')
-    : (isWhatsApp ? 'Hi, ' : 'Dear [Owner/Broker],\n\n');
+  const greeting =
+    tone === 'polite'
+      ? isWhatsApp
+        ? 'Hi, '
+        : 'Dear [Owner/Broker],\n\n'
+      : isWhatsApp
+        ? 'Hi, '
+        : 'Dear [Owner/Broker],\n\n';
 
-  const closing = tone === 'polite'
-    ? (isWhatsApp ? '\n\nThanks for your time!' : '\n\nThank you for your time.\n\nBest regards,\n[Your Name]')
-    : (isWhatsApp ? '\n\nThanks.' : '\n\nRegards,\n[Your Name]');
+  const closing =
+    tone === 'polite'
+      ? isWhatsApp
+        ? '\n\nThanks for your time!'
+        : '\n\nThank you for your time.\n\nBest regards,\n[Your Name]'
+      : isWhatsApp
+        ? '\n\nThanks.'
+        : '\n\nRegards,\n[Your Name]';
 
   const body = items.map((item, i) => `${i + 1}. ${item.ask}`).join('\n');
 

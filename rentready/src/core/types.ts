@@ -222,10 +222,13 @@ export type AppState = {
   preferences: Preferences;
   key: KeyState;
   budget: BudgetState;
+  /** Demo mode: recorded responses instead of live Gemini calls (no key needed). */
+  demo: boolean;
 };
 
 export type AppAction =
   | { type: 'SET_INTERVIEW_ANSWER'; key: keyof InterviewAnswers; value: string | string[] }
+  | { type: 'CLEAR_INTERVIEW_ANSWER'; key: keyof InterviewAnswers }
   | { type: 'SET_INTERVIEW_STEP'; step: number }
   | { type: 'SET_INTERVIEW_COMPLETED'; completed: boolean }
   | { type: 'SET_DOCUMENT'; document: Partial<DocumentState> }
@@ -243,6 +246,7 @@ export type AppAction =
   | { type: 'SET_KEY_REMEMBER'; remember: boolean }
   | { type: 'INCREMENT_BUDGET' }
   | { type: 'RESET_BUDGET' }
+  | { type: 'SET_DEMO'; demo: boolean }
   | { type: 'RESET_ALL' };
 
 export interface ModelMatchFinding {

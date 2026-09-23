@@ -11,7 +11,7 @@ import {
   runAnalysis,
   parsePastedText,
   parseSampleAgreement,
-  getDefaultModel
+  getDefaultModel,
 } from '../analyse/engine';
 import { useDemoMode } from '../analyse/demo';
 import { redact } from '../../core/gemini/errors';
@@ -37,8 +37,8 @@ export function Upload({ onAnalysed }: { onAnalysed: () => void }) {
         rawText: doc.rawText,
         pageCount: doc.pageCount,
         charCount: doc.rawText.length,
-        error: null
-      }
+        error: null,
+      },
     });
   };
 
@@ -55,16 +55,26 @@ export function Upload({ onAnalysed }: { onAnalysed: () => void }) {
         budgetUsed: state.budget.used,
         budgetLimit: state.budget.limit,
         demo: demo.active,
-        onStage: s => setStage(s)
+        onStage: s => setStage(s),
       });
-      dispatch({ type: 'SET_ANALYSIS', analysis: { result, loading: false, error: null, stage: '' } });
+      dispatch({
+        type: 'SET_ANALYSIS',
+        analysis: { result, loading: false, error: null, stage: '' },
+      });
       if (!demo.active) dispatch({ type: 'INCREMENT_BUDGET' });
       onAnalysed();
     } catch (e) {
       const err = e as { code?: string; message?: string };
       dispatch({
         type: 'SET_ANALYSIS',
-        analysis: { loading: false, error: { code: err.code ?? 'UNKNOWN', message: redact(err.message ?? ''), retryable: true } }
+        analysis: {
+          loading: false,
+          error: {
+            code: err.code ?? 'UNKNOWN',
+            message: redact(err.message ?? ''),
+            retryable: true,
+          },
+        },
       });
       setError(redact(err.message ?? t('errorPrefix')));
     } finally {
@@ -121,11 +131,7 @@ export function Upload({ onAnalysed }: { onAnalysed: () => void }) {
       {!busy && !error && (
         <div className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Button
-              onClick={() => fileRef.current?.click()}
-              variant="secondary"
-              className="flex-1"
-            >
+            <Button onClick={() => fileRef.current?.click()} variant="secondary" className="flex-1">
               {t('uploadFile')}
             </Button>
             <Button

@@ -1,6 +1,5 @@
 /** Disclaimer — cautious legal language */
 
-
 import { t } from '../../i18n';
 
 export function Disclaimer() {

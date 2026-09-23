@@ -38,7 +38,10 @@ export function Dialog({ open, onClose, title, children, labelledBy }: DialogPro
     };
 
     document.addEventListener('keydown', handleKey);
-    const timer = setTimeout(() => ref.current?.querySelector<HTMLElement>('button, input')?.focus(), 0);
+    const timer = setTimeout(
+      () => ref.current?.querySelector<HTMLElement>('button, input')?.focus(),
+      0
+    );
 
     return () => {
       document.removeEventListener('keydown', handleKey);

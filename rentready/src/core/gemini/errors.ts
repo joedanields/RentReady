@@ -32,19 +32,53 @@ export type ErrorCode =
   | 'UNKNOWN';
 
 export const ERROR_MESSAGES: Record<ErrorCode, { message: string; retryable: boolean }> = {
-  INVALID_FILE: { message: 'That file could not be read. Please use a PDF, DOCX, or paste the text instead.', retryable: false },
-  TOO_LARGE: { message: 'That file is too large. Please use a file under 10 MB, or paste the text instead.', retryable: false },
-  SCANNED_PDF: { message: 'This looks like a scanned PDF with no selectable text. Please paste the agreement text instead.', retryable: false },
-  NO_KEY: { message: 'No API key set. Add your key in Settings, or continue in Demo mode.', retryable: true },
-  KEY_REJECTED: { message: 'Your key was rejected. Check it in Google AI Studio, or continue in Demo mode.', retryable: true },
-  RATE_LIMITED: { message: 'Too many requests. Wait a moment and try again, or use Demo mode.', retryable: true },
-  QUOTA: { message: 'Your free-tier quota may be exhausted. Try again later or use Demo mode.', retryable: true },
-  MODEL_BLOCKED: { message: 'The model declined to respond. Try rephrasing, or use Demo mode.', retryable: false },
-  MODEL_INVALID_OUTPUT: { message: 'The model returned an unexpected response. Please try again.', retryable: true },
-  NETWORK: { message: 'Network error. The agreement is only analysed when your device is online.', retryable: true },
-  BUDGET_EXHAUSTED: { message: 'You\'ve used this session\'s analysis budget. Reload to reset, or use Demo mode.', retryable: false },
+  INVALID_FILE: {
+    message: 'That file could not be read. Please use a PDF, DOCX, or paste the text instead.',
+    retryable: false,
+  },
+  TOO_LARGE: {
+    message: 'That file is too large. Please use a file under 10 MB, or paste the text instead.',
+    retryable: false,
+  },
+  SCANNED_PDF: {
+    message:
+      'This looks like a scanned PDF with no selectable text. Please paste the agreement text instead.',
+    retryable: false,
+  },
+  NO_KEY: {
+    message: 'No API key set. Add your key in Settings, or continue in Demo mode.',
+    retryable: true,
+  },
+  KEY_REJECTED: {
+    message: 'Your key was rejected. Check it in Google AI Studio, or continue in Demo mode.',
+    retryable: true,
+  },
+  RATE_LIMITED: {
+    message: 'Too many requests. Wait a moment and try again, or use Demo mode.',
+    retryable: true,
+  },
+  QUOTA: {
+    message: 'Your free-tier quota may be exhausted. Try again later or use Demo mode.',
+    retryable: true,
+  },
+  MODEL_BLOCKED: {
+    message: 'The model declined to respond. Try rephrasing, or use Demo mode.',
+    retryable: false,
+  },
+  MODEL_INVALID_OUTPUT: {
+    message: 'The model returned an unexpected response. Please try again.',
+    retryable: true,
+  },
+  NETWORK: {
+    message: 'Network error. The agreement is only analysed when your device is online.',
+    retryable: true,
+  },
+  BUDGET_EXHAUSTED: {
+    message: "You've used this session's analysis budget. Reload to reset, or use Demo mode.",
+    retryable: false,
+  },
   TIMEOUT: { message: 'The request took too long. Try again, or use Demo mode.', retryable: true },
-  UNKNOWN: { message: 'Something went wrong. Please try again.', retryable: true }
+  UNKNOWN: { message: 'Something went wrong. Please try again.', retryable: true },
 };
 
 export function createAppError(code: ErrorCode, details?: string): AppError {
@@ -53,7 +87,7 @@ export function createAppError(code: ErrorCode, details?: string): AppError {
   return {
     code,
     message: extra ? `${message} ${extra}` : message,
-    retryable
+    retryable,
   };
 }
 

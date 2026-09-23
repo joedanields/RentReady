@@ -30,7 +30,10 @@ describe('createAppError', () => {
   });
 
   it('appends redacted details when present', () => {
-    const err = createAppError('KEY_REJECTED', `rejected key ${fakeKey('SyBadKeyValue1234567890zz')}`);
+    const err = createAppError(
+      'KEY_REJECTED',
+      `rejected key ${fakeKey('SyBadKeyValue1234567890zz')}`
+    );
     expect(err.message).toContain('rejected key AIza••••••[redacted]');
   });
 });

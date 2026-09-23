@@ -14,7 +14,7 @@ const file = (overrides: Partial<File> = {}): File =>
     type: '',
     name: 'agreement.docx',
     arrayBuffer: async () => new ArrayBuffer(0),
-    ...overrides
+    ...overrides,
   }) as unknown as File;
 
 const TEXT =
@@ -60,7 +60,11 @@ describe('parseDocx', () => {
 
 describe('isDocxFile', () => {
   it('accepts the docx mimetype or extension', () => {
-    expect(isDocxFile(file({ type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }))).toBe(true);
+    expect(
+      isDocxFile(
+        file({ type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+      )
+    ).toBe(true);
     expect(isDocxFile(file({ name: 'a.docx' }))).toBe(true);
     expect(isDocxFile(file({ name: 'a.pdf', type: 'application/pdf' }))).toBe(false);
   });

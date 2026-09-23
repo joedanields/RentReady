@@ -5,7 +5,7 @@ import { generateContent, repairJson, isKeyFormatValid, redact } from './client'
 type FetchMock = ReturnType<typeof vi.fn>;
 
 const OK_ENVELOPE = JSON.stringify({
-  candidates: [{ content: { parts: [{ text: '\n  {"result":"ok"}\n' }] } }]
+  candidates: [{ content: { parts: [{ text: '\n  {"result":"ok"}\n' }] } }],
 });
 
 const textResponse = (body: string, status = 200): Response =>
@@ -18,11 +18,14 @@ const params = {
   userPrompt: 'prompt',
   temperature: 0,
   maxOutputTokens: 1000,
-  timeoutMs: 5000
+  timeoutMs: 5000,
 };
 
 function lastFetchCall(fetch: FetchMock) {
-  const [url, init] = fetch.mock.calls[fetch.mock.calls.length - 1]! as [string, RequestInit & { body: string }];
+  const [url, init] = fetch.mock.calls[fetch.mock.calls.length - 1]! as [
+    string,
+    RequestInit & { body: string },
+  ];
   return { url, headers: init.headers as Record<string, string>, body: JSON.parse(init.body) };
 }
 
@@ -58,7 +61,9 @@ describe('generateContent', () => {
   });
 
   it('joins multiple parts into one text', async () => {
-    const envelope = JSON.stringify({ candidates: [{ content: { parts: [{ text: 'a' }, { text: 'b' }, { text: '' }] } }] });
+    const envelope = JSON.stringify({
+      candidates: [{ content: { parts: [{ text: 'a' }, { text: 'b' }, { text: '' }] } }],
+    });
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(textResponse(envelope)));
     const out = await generateContent(params);
     expect(out.text).toBe('ab');
@@ -80,7 +85,10 @@ describe('generateContent', () => {
     const fetch = vi.fn().mockResolvedValue(textResponse('bad key AIzaSyBadKeyValue12345x', 401));
     vi.stubGlobal('fetch', fetch);
 
-    await expect(generateContent(params)).rejects.toMatchObject({ code: 'KEY_REJECTED', retryable: true });
+    await expect(generateContent(params)).rejects.toMatchObject({
+      code: 'KEY_REJECTED',
+      retryable: true,
+    });
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
@@ -108,16 +116,18 @@ describe('generateContent', () => {
     vi.useFakeTimers();
     vi.stubGlobal(
       'fetch',
-      vi.fn((_: string, init: { signal?: AbortSignal }) =>
-        new Promise((_resolve, reject) => {
-          const signal = init?.signal;
-          const rejectAbort = () => reject(new DOMException('The operation was aborted.', 'AbortError'));
-          if (signal?.aborted) {
-            rejectAbort();
-            return;
-          }
-          signal?.addEventListener('abort', rejectAbort);
-        })
+      vi.fn(
+        (_: string, init: { signal?: AbortSignal }) =>
+          new Promise((_resolve, reject) => {
+            const signal = init?.signal;
+            const rejectAbort = () =>
+              reject(new DOMException('The operation was aborted.', 'AbortError'));
+            if (signal?.aborted) {
+              rejectAbort();
+              return;
+            }
+            signal?.addEventListener('abort', rejectAbort);
+          })
       )
     );
 

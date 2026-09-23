@@ -48,7 +48,7 @@ export async function parseDocx(
         text,
         page: null,
         pageEnd: null,
-        order
+        order,
       });
     }
     current = '';
@@ -60,8 +60,7 @@ export async function parseDocx(
     if (isClauseStart(line) && current.trim()) {
       flush();
       label = extractLabel(line);
-      const isHeading =
-        /^[A-Z][A-Z\s]{2,7}$/.test(line) && line.split(/\s+/).length <= 8;
+      const isHeading = /^[A-Z][A-Z\s]{2,7}$/.test(line) && line.split(/\s+/).length <= 8;
       if (isHeading && !label) heading = line;
       current = line;
     } else {
@@ -73,7 +72,7 @@ export async function parseDocx(
   return {
     clauses,
     rawText,
-    pageCount: 1
+    pageCount: 1,
   };
 }
 

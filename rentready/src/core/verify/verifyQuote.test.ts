@@ -7,7 +7,7 @@ describe('normalizeForComparison', () => {
     const input =
       'The Owner \u201Cmay\u201D enter after 24\u00A0hours\u2019 written\u00AD notice,\u200B in writing.';
     expect(normalizeForComparison(input)).toBe(
-      "the owner \"may\" enter after 24 hours' written notice, in writing."
+      'the owner "may" enter after 24 hours\' written notice, in writing.'
     );
   });
 });
@@ -19,7 +19,10 @@ describe('findQuoteOffsets', () => {
 
   it('returns null when not found', () => {
     expect(
-      findQuoteOffsets('this is a reasonably long clause sentence of text', 'totally different phrase')
+      findQuoteOffsets(
+        'this is a reasonably long clause sentence of text',
+        'totally different phrase'
+      )
     ).toBeNull();
   });
 
@@ -36,7 +39,7 @@ describe('verifyQuote', () => {
     expect(verifyQuote('actor playing', 'short', 'c001')).toEqual({
       clauseId: 'c001',
       quote: 'short',
-      status: 'unverified'
+      status: 'unverified',
     });
   });
 
@@ -58,19 +61,23 @@ before leaving the flat without exception.`;
   });
 
   it('returns fuzzy for one word swapped in a >=19 distinct-token window', () => {
-    const clause = 'landlord shall credit full original security deposit payment upon vacating flat after final inspection conducted jointly by both parties';
-    const quote = 'landlord shall return full original security deposit payment upon vacating flat after final inspection conducted jointly by both parties';
+    const clause =
+      'landlord shall credit full original security deposit payment upon vacating flat after final inspection conducted jointly by both parties';
+    const quote =
+      'landlord shall return full original security deposit payment upon vacating flat after final inspection conducted jointly by both parties';
     expect(verifyQuote(clause, quote, 'c004').status).toBe('fuzzy');
   });
 
   it('returns unverified when the quote is from another clause', () => {
     const clause = 'The agreement is for eleven months commencing on the first of April.';
-    const quote = 'The security deposit shall be returned within fifteen days of vacating the premises.';
+    const quote =
+      'The security deposit shall be returned within fifteen days of vacating the premises.';
     expect(verifyQuote(clause, quote, 'c005').status).toBe('unverified');
   });
 
   it('returns verified without offsets when normalized match cannot map (curly quotes)', () => {
-    const clause = 'Rent covers \u201Call utilities\u201D including electricity and water supply bills.';
+    const clause =
+      'Rent covers \u201Call utilities\u201D including electricity and water supply bills.';
     const quote = '"all utilities" including';
     const out = verifyQuote(clause, quote, 'c006');
     expect(out.status).toBe('verified');
@@ -87,10 +94,12 @@ before leaving the flat without exception.`;
 
 describe('verifyQuotes', () => {
   it('verifies a batch against a clause map, missing clauses yield unverified', () => {
-    const clauses = new Map([['c001', 'The rent is forty thousand rupees per calendar month payable in advance.']]);
+    const clauses = new Map([
+      ['c001', 'The rent is forty thousand rupees per calendar month payable in advance.'],
+    ]);
     const out = verifyQuotes(clauses, [
       { clauseId: 'c001', quote: 'The rent is forty thousand rupees' },
-      { clauseId: 'c999', quote: 'The rent is forty thousand rupees' }
+      { clauseId: 'c999', quote: 'The rent is forty thousand rupees' },
     ]);
     expect(out[0]!.status).toBe('verified');
     expect(out[1]!.status).toBe('unverified');

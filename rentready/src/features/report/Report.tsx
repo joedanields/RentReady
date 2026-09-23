@@ -14,11 +14,17 @@ import type {
   RuleHit,
   Clause,
   VerifiedQuote,
-  AskResult
+  AskResult,
 } from '../../core/types';
 import { topicLabel, verdictWord } from './labels';
 
-export function Report({ onNegotiate, onMoveIn }: { onNegotiate: () => void; onMoveIn: () => void }) {
+export function Report({
+  onNegotiate,
+  onMoveIn,
+}: {
+  onNegotiate: () => void;
+  onMoveIn: () => void;
+}) {
   const { state } = useApp();
   const analysis = state.analysis.result;
   const [activeTab, setActiveTab] = useState('gaps');
@@ -68,7 +74,7 @@ export function Report({ onNegotiate, onMoveIn }: { onNegotiate: () => void; onM
         tabs={[
           { id: 'gaps', label: `${t('tabGaps')} (${rowsToRaise.length})`, controlId: 'panel-gaps' },
           { id: 'details', label: t('tabDetails'), controlId: 'panel-details' },
-          { id: 'ask', label: t('tabAsk'), controlId: 'panel-ask' }
+          { id: 'ask', label: t('tabAsk'), controlId: 'panel-ask' },
         ]}
         activeId={activeTab}
         onChange={setActiveTab}
@@ -117,7 +123,7 @@ function GapsPanel({
   gaps,
   notCovered,
   rules,
-  clauses
+  clauses,
 }: {
   differs: MatchRow[];
   gaps: GapRow[];
@@ -208,7 +214,11 @@ function MatchCard({ row, subdued }: { row: MatchRow; subdued?: boolean }) {
           <div className="flex gap-2">
             <dt className="w-24 shrink-0 text-muted">{t('agreementSays')}:</dt>
             <dd>
-              {row.evidence ? <Mark text={row.written} highlight={row.evidence.quote} /> : row.written}
+              {row.evidence ? (
+                <Mark text={row.written} highlight={row.evidence.quote} />
+              ) : (
+                row.written
+              )}
             </dd>
           </div>
         )}
@@ -230,7 +240,13 @@ function EvidenceRow({ evidence }: { evidence: VerifiedQuote }) {
     <div className="mt-2 rounded-lg bg-gray-50 p-2 text-sm">
       <div className="mb-1 flex items-center gap-2">
         <Badge
-          tone={evidence.status === 'verified' ? 'verified' : evidence.status === 'fuzzy' ? 'fuzzy' : 'unverified'}
+          tone={
+            evidence.status === 'verified'
+              ? 'verified'
+              : evidence.status === 'fuzzy'
+                ? 'fuzzy'
+                : 'unverified'
+          }
           label={
             evidence.status === 'verified'
               ? t('verifiedQuoteBadge')
@@ -256,7 +272,9 @@ function GapCard({ gap }: { gap: GapRow }) {
         <h3 className="font-medium">{gap.title}</h3>
         <Badge
           tone={tone}
-          label={gap.state === 'absent' ? 'Missing' : gap.state === 'present' ? 'Covered' : 'Unclear'}
+          label={
+            gap.state === 'absent' ? 'Missing' : gap.state === 'present' ? 'Covered' : 'Unclear'
+          }
         />
       </div>
       <p className="text-sm text-muted">{gap.whyItMatters}</p>
@@ -300,7 +318,9 @@ function DetailsPanel({ analysis, clauses }: { analysis: AnalysisResult; clauses
         <h2 id="matches-heading" className="mb-2 font-semibold">
           {t('tabDetails')}
         </h2>
-        {analysis.matches.length === 0 && <p className="text-sm text-muted">{t('notCoveredLine')}</p>}
+        {analysis.matches.length === 0 && (
+          <p className="text-sm text-muted">{t('notCoveredLine')}</p>
+        )}
         <div className="space-y-3">
           {analysis.matches.map(row => (
             <MatchCard key={row.key} row={row} />
@@ -356,7 +376,7 @@ function AskPanel() {
         'Demo mode: ask this with your Gemini key, or keep it local. Re-run the analysis with a key to unlock full Ask.',
       citations: [],
       missingInfo: [],
-      suggestedQuestions: []
+      suggestedQuestions: [],
     };
     dispatch({ type: 'ADD_QA', question: q.trim(), result });
     setAnswer(result);

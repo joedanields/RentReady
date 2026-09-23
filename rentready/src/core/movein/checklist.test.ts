@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { ROOMS, METER_TYPES, PHOTO_GUIDE, CHECKLIST_TEMPLATE, buildMoveInKit, exportMoveInKitAsMarkdown } from './checklist';
+import {
+  ROOMS,
+  METER_TYPES,
+  PHOTO_GUIDE,
+  CHECKLIST_TEMPLATE,
+  buildMoveInKit,
+  exportMoveInKitAsMarkdown,
+} from './checklist';
 import type { NormalisedAnswers, MatchRow, InterviewAnswers } from '../types';
 
 const INTERVIEW: NormalisedAnswers = {
@@ -12,7 +19,7 @@ const INTERVIEW: NormalisedAnswers = {
   maintenance: null,
   repairs: null,
   increase: null,
-  extras: []
+  extras: [],
 };
 
 const match = (key: string, written: string): MatchRow => ({
@@ -23,7 +30,7 @@ const match = (key: string, written: string): MatchRow => ({
   note: '',
   written,
   evidence: null,
-  suggestedQuestion: null
+  suggestedQuestion: null,
 });
 
 describe('constants', () => {
@@ -39,7 +46,16 @@ describe('buildMoveInKit', () => {
   it('builds a complete checklist with stable ids and every room', () => {
     const kit = buildMoveInKit(INTERVIEW, []);
     const rooms = new Set(kit.checklist.map(i => i.room));
-    for (const room of ['Living Room', 'Bedroom 1', 'Bedroom 2', 'Kitchen', 'Bathroom 1', 'Bathroom 2', 'Balcony', 'Common Areas']) {
+    for (const room of [
+      'Living Room',
+      'Bedroom 1',
+      'Bedroom 2',
+      'Kitchen',
+      'Bathroom 1',
+      'Bathroom 2',
+      'Balcony',
+      'Common Areas',
+    ]) {
       expect(rooms.has(room)).toBe(true);
     }
     expect(kit.checklist).toHaveLength(48);
@@ -66,7 +82,18 @@ describe('buildMoveInKit', () => {
 
   it('defaults notice to 30 days and duration to 330 days when unknown', () => {
     const kit = buildMoveInKit(
-      { city: null, monthlyRent: null, deposit: null, duration: null, lockIn: null, noticePeriod: null, maintenance: null, repairs: null, increase: null, extras: [] },
+      {
+        city: null,
+        monthlyRent: null,
+        deposit: null,
+        duration: null,
+        lockIn: null,
+        noticePeriod: null,
+        maintenance: null,
+        repairs: null,
+        increase: null,
+        extras: [],
+      },
       [match('noticePeriod', 'unparseable')]
     );
     expect(kit.timeline[1]!.description).toContain('30-day notice');
@@ -103,7 +130,7 @@ describe('exportMoveInKitAsMarkdown', () => {
       maintenance: null,
       repairs: null,
       increase: null,
-      extras: []
+      extras: [],
     };
     const kit = buildMoveInKit(empty, []);
     const md = exportMoveInKitAsMarkdown(kit, empty);

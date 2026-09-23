@@ -14,10 +14,10 @@ export const ANALYSIS_SCHEMA = {
           writtenValue: { type: 'STRING', nullable: true },
           clauseId: { type: 'STRING', nullable: true },
           quote: { type: 'STRING', nullable: true },
-          ambiguity: { type: 'STRING', nullable: true }
+          ambiguity: { type: 'STRING', nullable: true },
         },
-        required: ['key', 'found']
-      }
+        required: ['key', 'found'],
+      },
     },
     protectionFindings: {
       type: 'ARRAY',
@@ -28,13 +28,13 @@ export const ANALYSIS_SCHEMA = {
           state: { type: 'STRING', enum: ['present', 'absent', 'unclear'] },
           summary: { type: 'STRING', nullable: true },
           clauseId: { type: 'STRING', nullable: true },
-          quote: { type: 'STRING', nullable: true }
+          quote: { type: 'STRING', nullable: true },
         },
-        required: ['id', 'state']
-      }
-    }
+        required: ['id', 'state'],
+      },
+    },
   },
-  required: ['overview', 'matchFindings', 'protectionFindings']
+  required: ['overview', 'matchFindings', 'protectionFindings'],
 };
 
 export const ASK_SCHEMA = {
@@ -48,15 +48,15 @@ export const ASK_SCHEMA = {
         type: 'OBJECT',
         properties: {
           clauseId: { type: 'STRING' },
-          quote: { type: 'STRING' }
+          quote: { type: 'STRING' },
         },
-        required: ['clauseId', 'quote']
-      }
+        required: ['clauseId', 'quote'],
+      },
     },
     missingInfo: { type: 'ARRAY', items: { type: 'STRING' } },
-    suggestedQuestions: { type: 'ARRAY', items: { type: 'STRING' } }
+    suggestedQuestions: { type: 'ARRAY', items: { type: 'STRING' } },
   },
-  required: ['status', 'answer', 'citations', 'missingInfo', 'suggestedQuestions']
+  required: ['status', 'answer', 'citations', 'missingInfo', 'suggestedQuestions'],
 };
 
 export const NEGOTIATION_SCHEMA = {
@@ -71,13 +71,13 @@ export const NEGOTIATION_SCHEMA = {
           rowId: { type: 'STRING' },
           ask: { type: 'STRING' },
           reason: { type: 'STRING' },
-          suggestedWording: { type: 'STRING' }
+          suggestedWording: { type: 'STRING' },
         },
-        required: ['rowId', 'ask', 'reason', 'suggestedWording']
-      }
-    }
+        required: ['rowId', 'ask', 'reason', 'suggestedWording'],
+      },
+    },
   },
-  required: ['message', 'items']
+  required: ['message', 'items'],
 };
 
 export const DEFAULT_MODEL = 'gemini-2.5-flash';

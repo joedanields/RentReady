@@ -12,7 +12,7 @@ const TOPIC_LABELS: Record<keyof InterviewAnswers, string> = {
   maintenance: 'Maintenance charges',
   repairs: 'Repairs',
   increase: 'Rent increase',
-  extras: 'Extra promises'
+  extras: 'Extra promises',
 };
 
 export function topicLabel(key: keyof InterviewAnswers): string {

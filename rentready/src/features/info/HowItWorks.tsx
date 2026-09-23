@@ -1,6 +1,5 @@
 /** How this works — neutral explanation, no legal claims */
 
-
 import { t } from '../../i18n';
 
 export function HowItWorks() {

@@ -25,7 +25,10 @@ function escapeRegExp(text: string): string {
  * absent, or containing characters that normalization changed beyond
  * whitespace/case).
  */
-export function findQuoteOffsets(clauseText: string, quote: string): { start: number; end: number } | null {
+export function findQuoteOffsets(
+  clauseText: string,
+  quote: string
+): { start: number; end: number } | null {
   const normQuote = normalizeForComparison(quote);
 
   if (normQuote.length < 12) return null;

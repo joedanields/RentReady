@@ -25,3 +25,12 @@ Every resolution of ambiguity or conflict is logged here in one line. Append as 
 | 19 | 2026-09-23 | vitest-axe 0.1 augments the legacy `Vi` namespace that Vitest 2 ignores; component tests call `axe()` via `tests/axe.ts#expectNoAxeViolations` instead of a custom matcher (no `any` augmentation needed). Colour contrast is checked in Playwright, not jsdom. |
 | 20 | 2026-09-23 | App icon is a single SVG (`public/icon.svg`, `sizes: any`) — no PNG binaries in the repo; the duplicate `public/manifest.webmanifest` was removed because vite-plugin-pwa generates it. |
 | 21 | 2026-09-23 | Header carries only a compact "Forget key" button (shown once a key exists); the full key panel stays on Upload and Settings. The full panel in the header overflowed 320 px by 186 px. |
+| 22 | 2026-09-23 | `buildMatchRows` excludes `city` (context only, per INTERVIEW_SPEC) and `not_sure`/`not_discussed` answers; the interview UI also stores those choices as a skip. "Skipped ≠ mismatch" holds in both layers. |
+| 23 | 2026-09-23 | Deposits in months are read by `parseMonthsCount` before `parseMoney`, so "two months" is 2 months of rent, not ₹2. Capped at 24 months. |
+| 24 | 2026-09-23 | Interview options that need a number use follow-up inputs whose composed value is a string `normalise.ts` already parses (`"6 months"`, `"10%"`, `"45 days"`), so UI and verdict code share one format. |
+| 25 | 2026-09-23 | Selecting a radio never auto-advances (arrow keys change the selection); Enter/Next submits. Number keys 1–9 pick options. Backspace-to-go-back was not added: it collides with text editing; the Back button and Shift+Tab cover it. |
+| 26 | 2026-09-23 | Question/option/chip text lives in `en.ts` under `q.*`, `opt.*`, `chip.*` keys; a unit test fails if any is missing. Core `questions.ts` keeps English as a fallback for Node (eval). |
+| 27 | 2026-09-23 | Demo flag moved into reducer state (`SET_DEMO`) — each `useDemoMode()` previously held its own copy. Preferences persist to `localStorage` and the demo flag to `sessionStorage`, both read back through Zod field by field; nothing else is stored. "Clear everything" removes every `rentready:` key, then `RESET_ALL`. |
+| 28 | 2026-09-23 | `t()` language is synced inside `AppProvider` during render (idempotent `setLang`), so no screen renders a frame in the old language. |
+| 29 | 2026-09-23 | The whole codebase was formatted with the repo's Prettier config once (it had never been applied); later diffs stay small. |
+

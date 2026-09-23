@@ -7,7 +7,9 @@ test.describe('app shell', () => {
     expect(csp).toContain("script-src 'self'");
     // Exactly one external origin may be contacted: the Gemini API.
     const connect = /connect-src ([^;]+)/.exec(csp)?.[1]?.trim().split(/\s+/) ?? [];
-    expect(connect.filter(s => s.startsWith('https://'))).toEqual(['https://generativelanguage.googleapis.com']);
+    expect(connect.filter(s => s.startsWith('https://'))).toEqual([
+      'https://generativelanguage.googleapis.com',
+    ]);
     expect(response?.headers()['x-frame-options']).toBe('DENY');
 
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
@@ -36,7 +38,9 @@ test.describe('app shell', () => {
   test('no horizontal scroll at 320 px', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto('/');
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth
+    );
     expect(overflow).toBeLessThanOrEqual(0);
   });
 });

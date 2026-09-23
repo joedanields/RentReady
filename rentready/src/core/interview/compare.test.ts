@@ -13,7 +13,7 @@ const NORMALISED = normaliseAnswers({
   maintenance: 'owner',
   repairs: 'split',
   increase: '5%',
-  extras: ['Parking included', 'Pets allowed']
+  extras: ['Parking included', 'Pets allowed'],
 });
 
 const RAW_WITH_RENT = {
@@ -26,19 +26,19 @@ const RAW_WITH_RENT = {
   maintenance: 'owner',
   repairs: 'split',
   increase: '5%',
-  extras: ['Parking included', 'Pets allowed']
+  extras: ['Parking included', 'Pets allowed'],
 };
 
 const noEvidence = (): VerifiedQuote | null => null;
 const verified = (clauseId: string): VerifiedQuote => ({
   clauseId,
   quote: 'exact quote from the agreement text that is long enough',
-  status: 'verified'
+  status: 'verified',
 });
 const unverified = (clauseId: string): VerifiedQuote => ({
   clauseId,
   quote: 'some quote that would not verify anywhere',
-  status: 'unverified'
+  status: 'unverified',
 });
 
 describe('compareAnswer — skipped answers', () => {
@@ -60,7 +60,14 @@ describe('compareAnswer — model found nothing', () => {
 
 describe('compareAnswer — unverified evidence demotes to unclear', () => {
   it('never reports differs without a verified quote', () => {
-    const row = compareAnswer('monthlyRent', '40000', '₹40,000', true, unverified('c001'), NORMALISED);
+    const row = compareAnswer(
+      'monthlyRent',
+      '40000',
+      '₹40,000',
+      true,
+      unverified('c001'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('unclear');
     expect(row.evidence?.status).toBe('unverified');
     expect(row.suggestedQuestion).not.toBeNull();
@@ -69,20 +76,41 @@ describe('compareAnswer — unverified evidence demotes to unclear', () => {
 
 describe('compareAnswer — monthlyRent', () => {
   it('equal rent matches', () => {
-    const row = compareAnswer('monthlyRent', '40000', '₹40,000', true, verified('c001'), NORMALISED);
+    const row = compareAnswer(
+      'monthlyRent',
+      '40000',
+      '₹40,000',
+      true,
+      verified('c001'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('matches');
     expect(row.severity).toBe('INFO');
   });
 
   it('higher written rent is differs HIGH', () => {
-    const row = compareAnswer('monthlyRent', '40000', '₹1,20,000', true, verified('c001'), NORMALISED);
+    const row = compareAnswer(
+      'monthlyRent',
+      '40000',
+      '₹1,20,000',
+      true,
+      verified('c001'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('differs');
     expect(row.severity).toBe('HIGH');
     expect(row.suggestedQuestion).not.toBeNull();
   });
 
   it('lower written rent is differs INFO (better)', () => {
-    const row = compareAnswer('monthlyRent', '40000', '₹38,000', true, verified('c001'), NORMALISED);
+    const row = compareAnswer(
+      'monthlyRent',
+      '40000',
+      '₹38,000',
+      true,
+      verified('c001'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('differs');
     expect(row.severity).toBe('INFO');
   });
@@ -95,7 +123,14 @@ describe('compareAnswer — monthlyRent', () => {
   it('parses k/lakh suffixes on both sides', () => {
     const k = compareAnswer('monthlyRent', '40k', '40k', true, verified('c001'), NORMALISED);
     expect(k.verdict).toBe('matches');
-    const lakh = compareAnswer('deposit', '2 lakh', '₹2,00,000', true, verified('c001'), normaliseAnswers({ ...RAW_WITH_RENT, monthlyRent: null }));
+    const lakh = compareAnswer(
+      'deposit',
+      '2 lakh',
+      '₹2,00,000',
+      true,
+      verified('c001'),
+      normaliseAnswers({ ...RAW_WITH_RENT, monthlyRent: null })
+    );
     expect(lakh.verdict).toBe('matches');
   });
 });
@@ -143,12 +178,26 @@ describe('compareAnswer — deposit', () => {
   });
 
   it('compares in months when both sides say "N months" in the document', () => {
-    const row = compareAnswer('deposit', '2 months', '120000 (2 months)', true, verified('c001'), NORMALISED);
+    const row = compareAnswer(
+      'deposit',
+      '2 months',
+      '120000 (2 months)',
+      true,
+      verified('c001'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('matches');
   });
 
   it('shows the wording as written when the document amount is unclear', () => {
-    const row = compareAnswer('deposit', '80000', '₹80k (refundable)', true, verified('c001'), NORMALISED);
+    const row = compareAnswer(
+      'deposit',
+      '80000',
+      '₹80k (refundable)',
+      true,
+      verified('c001'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('differs');
     expect(row.severity).toBe('INFO');
     expect(row.note).toContain('₹80k (refundable)');
@@ -170,40 +219,96 @@ describe('worseAmount', () => {
 
 describe('compareAnswer — duration', () => {
   it('matches within 15 days', () => {
-    const row = compareAnswer('duration', '11 months', '11 months', true, verified('c002'), NORMALISED);
+    const row = compareAnswer(
+      'duration',
+      '11 months',
+      '11 months',
+      true,
+      verified('c002'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('matches');
   });
 
   it('differs MEDIUM when materially different', () => {
-    const row = compareAnswer('duration', '11 months', '2 years', true, verified('c002'), NORMALISED);
+    const row = compareAnswer(
+      'duration',
+      '11 months',
+      '2 years',
+      true,
+      verified('c002'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('differs');
     expect(row.severity).toBe('MEDIUM');
   });
 
   it('unclear when values cannot be parsed', () => {
-    const row = compareAnswer('duration', 'forever', 'indefinite', true, verified('c002'), NORMALISED);
+    const row = compareAnswer(
+      'duration',
+      'forever',
+      'indefinite',
+      true,
+      verified('c002'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('unclear');
   });
 
   it('parses exact years, general months, decimal years and days', () => {
-    const year = compareAnswer('duration', '12 months', '12 months', true, verified('c002'), NORMALISED);
+    const year = compareAnswer(
+      'duration',
+      '12 months',
+      '12 months',
+      true,
+      verified('c002'),
+      NORMALISED
+    );
     expect(year.verdict).toBe('matches');
 
-    const months = compareAnswer('duration', '6 months', '6 months', true, verified('c002'), NORMALISED);
+    const months = compareAnswer(
+      'duration',
+      '6 months',
+      '6 months',
+      true,
+      verified('c002'),
+      NORMALISED
+    );
     expect(months.verdict).toBe('matches');
 
-    const yAndHalf = compareAnswer('duration', '1.5 years', '15 months', true, verified('c002'), NORMALISED);
+    const yAndHalf = compareAnswer(
+      'duration',
+      '1.5 years',
+      '15 months',
+      true,
+      verified('c002'),
+      NORMALISED
+    );
     expect(yAndHalf.verdict).toBe('differs');
     expect(yAndHalf.severity).toBe('MEDIUM');
 
-    const days = compareAnswer('duration', '45 days', '45 days', true, verified('c002'), NORMALISED);
+    const days = compareAnswer(
+      'duration',
+      '45 days',
+      '45 days',
+      true,
+      verified('c002'),
+      NORMALISED
+    );
     expect(days.verdict).toBe('matches');
   });
 });
 
 describe('compareAnswer — lockIn', () => {
   it('matches when both say no lock-in', () => {
-    const row = compareAnswer('lockIn', 'no', 'no lock-in period', true, verified('c003'), NORMALISED);
+    const row = compareAnswer(
+      'lockIn',
+      'no',
+      'no lock-in period',
+      true,
+      verified('c003'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('matches');
   });
 
@@ -225,7 +330,14 @@ describe('compareAnswer — lockIn', () => {
   });
 
   it('unclear when only one side parses', () => {
-    const row = compareAnswer('lockIn', '6 months', 'indefinite', true, verified('c003'), NORMALISED);
+    const row = compareAnswer(
+      'lockIn',
+      '6 months',
+      'indefinite',
+      true,
+      verified('c003'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('unclear');
   });
 
@@ -237,38 +349,94 @@ describe('compareAnswer — lockIn', () => {
 
 describe('compareAnswer — noticePeriod', () => {
   it('matches when equal or better', () => {
-    const equal = compareAnswer('noticePeriod', '1 month', '1 month', true, verified('c004'), NORMALISED);
+    const equal = compareAnswer(
+      'noticePeriod',
+      '1 month',
+      '1 month',
+      true,
+      verified('c004'),
+      NORMALISED
+    );
     expect(equal.verdict).toBe('matches');
-    const better = compareAnswer('noticePeriod', '1 month', '15 days', true, verified('c004'), NORMALISED);
+    const better = compareAnswer(
+      'noticePeriod',
+      '1 month',
+      '15 days',
+      true,
+      verified('c004'),
+      NORMALISED
+    );
     expect(better.verdict).toBe('matches');
   });
 
   it('differs HIGH when worse', () => {
-    const row = compareAnswer('noticePeriod', '1 month', '2 months', true, verified('c004'), NORMALISED);
+    const row = compareAnswer(
+      'noticePeriod',
+      '1 month',
+      '2 months',
+      true,
+      verified('c004'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('differs');
     expect(row.severity).toBe('HIGH');
   });
 
   it('unclear when unparseable', () => {
-    const row = compareAnswer('noticePeriod', 'whenever', '2 months', true, verified('c004'), NORMALISED);
+    const row = compareAnswer(
+      'noticePeriod',
+      'whenever',
+      '2 months',
+      true,
+      verified('c004'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('unclear');
   });
 
   it('treats a shorter written notice as better', () => {
-    const week = compareAnswer('noticePeriod', '1 month', '7 days', true, verified('c004'), NORMALISED);
+    const week = compareAnswer(
+      'noticePeriod',
+      '1 month',
+      '7 days',
+      true,
+      verified('c004'),
+      NORMALISED
+    );
     expect(week.verdict).toBe('matches');
 
-    const day = compareAnswer('noticePeriod', '1 month', '1 day', true, verified('c004'), NORMALISED);
+    const day = compareAnswer(
+      'noticePeriod',
+      '1 month',
+      '1 day',
+      true,
+      verified('c004'),
+      NORMALISED
+    );
     expect(day.verdict).toBe('matches');
   });
 
   it('unclear when the user answer is not_sure', () => {
-    const row = compareAnswer('noticePeriod', 'not_sure', '1 month', true, verified('c004'), NORMALISED);
+    const row = compareAnswer(
+      'noticePeriod',
+      'not_sure',
+      '1 month',
+      true,
+      verified('c004'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('unclear');
   });
 
   it('compares general multi-month notices', () => {
-    const row = compareAnswer('noticePeriod', '1 month', '3 months', true, verified('c004'), NORMALISED);
+    const row = compareAnswer(
+      'noticePeriod',
+      '1 month',
+      '3 months',
+      true,
+      verified('c004'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('differs');
     expect(row.severity).toBe('HIGH');
   });
@@ -301,12 +469,26 @@ describe('compareAnswer — maintenance / repairs', () => {
   });
 
   it('unclear when either side unparseable', () => {
-    const row = compareAnswer('maintenance', 'owner', 'someone else', true, verified('c005'), NORMALISED);
+    const row = compareAnswer(
+      'maintenance',
+      'owner',
+      'someone else',
+      true,
+      verified('c005'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('unclear');
   });
 
   it('renders not_discussed parties in the note', () => {
-    const row = compareAnswer('maintenance', 'not_discussed', 'me', true, verified('c005'), NORMALISED);
+    const row = compareAnswer(
+      'maintenance',
+      'not_discussed',
+      'me',
+      true,
+      verified('c005'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('differs');
     expect(row.severity).toBe('MEDIUM');
     expect(row.note).toContain('not specified');
@@ -315,7 +497,14 @@ describe('compareAnswer — maintenance / repairs', () => {
 
 describe('compareAnswer — increase', () => {
   it('matches when neither mentions an increase', () => {
-    const row = compareAnswer('increase', 'no', 'no escalation clause', true, verified('c007'), NORMALISED);
+    const row = compareAnswer(
+      'increase',
+      'no',
+      'no escalation clause',
+      true,
+      verified('c007'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('matches');
   });
 
@@ -346,12 +535,26 @@ describe('compareAnswer — increase', () => {
 
 describe('compareAnswer — extras', () => {
   it('matches when all agreed extras appear in the agreement', () => {
-    const row = compareAnswer('extras', 'Parking included, Pets allowed', 'Tenant may park one vehicle. Parking included. Small pets allowed with consent.', true, verified('c008'), NORMALISED);
+    const row = compareAnswer(
+      'extras',
+      'Parking included, Pets allowed',
+      'Tenant may park one vehicle. Parking included. Small pets allowed with consent.',
+      true,
+      verified('c008'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('matches');
   });
 
   it('differs MEDIUM listing the missing extras', () => {
-    const row = compareAnswer('extras', 'Parking included, Pets allowed', 'Tenant may park one vehicle.', true, verified('c008'), NORMALISED);
+    const row = compareAnswer(
+      'extras',
+      'Parking included, Pets allowed',
+      'Tenant may park one vehicle.',
+      true,
+      verified('c008'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('differs');
     expect(row.severity).toBe('MEDIUM');
     expect(row.note).toContain('pets allowed');
@@ -377,21 +580,59 @@ describe('buildMatchRows', () => {
       maintenance: null,
       repairs: null,
       increase: null,
-      extras: []
+      extras: [],
     };
     const verifiedMap = new Map<string, VerifiedQuote>([['c001', verified('c001')]]);
     const rows = buildMatchRows(
       answers,
       [
-        { key: 'monthlyRent', found: true, writtenValue: '₹40,000', clauseId: 'c001', quote: 'x', ambiguity: null },
-        { key: 'lockIn', found: false, writtenValue: null, clauseId: null, quote: null, ambiguity: null },
-        { key: 'noticePeriod', found: true, writtenValue: '1 month', clauseId: 'c002', quote: 'y', ambiguity: null }
+        {
+          key: 'monthlyRent',
+          found: true,
+          writtenValue: '₹40,000',
+          clauseId: 'c001',
+          quote: 'x',
+          ambiguity: null,
+        },
+        {
+          key: 'lockIn',
+          found: false,
+          writtenValue: null,
+          clauseId: null,
+          quote: null,
+          ambiguity: null,
+        },
+        {
+          key: 'noticePeriod',
+          found: true,
+          writtenValue: '1 month',
+          clauseId: 'c002',
+          quote: 'y',
+          ambiguity: null,
+        },
       ],
       verifiedMap
     );
-    expect(rows.map(r => r.key)).toEqual(['city', 'monthlyRent', 'lockIn', 'noticePeriod']);
+    // City is context for the "rules vary by state" line, never a promise to check.
+    expect(rows.map(r => r.key)).toEqual(['monthlyRent', 'lockIn', 'noticePeriod']);
     expect(rows.find(r => r.key === 'monthlyRent')?.verdict).toBe('matches');
     expect(rows.find(r => r.key === 'lockIn')?.verdict).toBe('not_covered');
+  });
+
+  it('treats "Not sure" and "Not discussed" answers as skipped, never as a promise', () => {
+    const answers: InterviewAnswers = {
+      city: null,
+      monthlyRent: null,
+      deposit: null,
+      duration: null,
+      lockIn: 'not_sure',
+      noticePeriod: 'not_sure',
+      maintenance: 'not_discussed',
+      repairs: 'NOT_DISCUSSED',
+      increase: ' not_sure ',
+      extras: [],
+    };
+    expect(buildMatchRows(answers, [], new Map())).toEqual([]);
   });
 
   it('serialises multi-value extras into the agreed string', () => {
@@ -405,7 +646,7 @@ describe('buildMatchRows', () => {
       maintenance: null,
       repairs: null,
       increase: null,
-      extras: ['Parking included', 'Pets allowed']
+      extras: ['Parking included', 'Pets allowed'],
     };
     const rows = buildMatchRows(answers, [], new Map());
     const extras = rows.find(r => r.key === 'extras')!;
@@ -416,12 +657,26 @@ describe('buildMatchRows', () => {
 
 describe('compareAnswer — edge branches', () => {
   it('reports unclear when repairs on either side cannot be parsed', () => {
-    const row = compareAnswer('repairs', 'whoever fixes it', 'Tenant pays', true, verified('c006'), NORMALISED);
+    const row = compareAnswer(
+      'repairs',
+      'whoever fixes it',
+      'Tenant pays',
+      true,
+      verified('c006'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('unclear');
   });
 
   it('falls back to unclear for an unrecognised key', () => {
-    const row = compareAnswer('saleTerms' as keyof InterviewAnswers, 'any', 'any', true, verified('c001'), NORMALISED);
+    const row = compareAnswer(
+      'saleTerms' as keyof InterviewAnswers,
+      'any',
+      'any',
+      true,
+      verified('c001'),
+      NORMALISED
+    );
     expect(row.verdict).toBe('unclear');
     expect(row.severity).toBe('INFO');
   });

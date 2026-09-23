@@ -2,7 +2,14 @@
  * The model reports, the code judges.
  */
 
-import type { InterviewAnswers, NormalisedAnswers, MatchRow, VerifiedQuote, Verdict, Severity } from '../types.js';
+import type {
+  InterviewAnswers,
+  NormalisedAnswers,
+  MatchRow,
+  VerifiedQuote,
+  Verdict,
+  Severity,
+} from '../types.js';
 import { normaliseAnswers, formatDays } from './normalise.js';
 
 /** Comparison result before quote verification */
@@ -36,7 +43,7 @@ export function compareAnswer(
       severity: 'INFO',
       evidence: null,
       note: '',
-      suggestedQuestion: null
+      suggestedQuestion: null,
     };
   }
 
@@ -51,7 +58,7 @@ export function compareAnswer(
       severity: 'INFO',
       evidence: null,
       note: `Your agreement doesn't mention ${getTopicLabel(key)}.`,
-      suggestedQuestion: question
+      suggestedQuestion: question,
     };
   }
 
@@ -65,7 +72,7 @@ export function compareAnswer(
       severity: 'INFO',
       evidence,
       note: `The agreement mentions ${getTopicLabel(key)} but we couldn't verify the exact wording.`,
-      suggestedQuestion: getSuggestedQuestion(key)
+      suggestedQuestion: getSuggestedQuestion(key),
     };
   }
 
@@ -80,7 +87,7 @@ export function compareAnswer(
     severity,
     evidence,
     note,
-    suggestedQuestion: verdict === 'differs' ? getSuggestedQuestion(key) : null
+    suggestedQuestion: verdict === 'differs' ? getSuggestedQuestion(key) : null,
   };
 }
 
@@ -95,17 +102,25 @@ function computeVerdict(
       const agreedNum = parseMoney(agreed);
       const writtenNum = parseMoney(written);
       if (agreedNum === null || writtenNum === null) {
-        return { verdict: 'unclear', severity: 'INFO', note: 'Could not compare rent amounts precisely.' };
+        return {
+          verdict: 'unclear',
+          severity: 'INFO',
+          note: 'Could not compare rent amounts precisely.',
+        };
       }
       const diff = Math.abs(agreedNum - writtenNum);
       if (diff <= 1) {
-        return { verdict: 'matches', severity: 'INFO', note: 'The rent matches what you were told.' };
+        return {
+          verdict: 'matches',
+          severity: 'INFO',
+          note: 'The rent matches what you were told.',
+        };
       }
       const worse = writtenNum > agreedNum;
       return {
         verdict: 'differs',
         severity: worse ? 'HIGH' : 'INFO',
-        note: `You said ${formatMoney(agreedNum)}. The agreement says ${formatMoney(writtenNum)}.`
+        note: `You said ${formatMoney(agreedNum)}. The agreement says ${formatMoney(writtenNum)}.`,
       };
     }
 
@@ -127,19 +142,24 @@ function computeVerdict(
       }
 
       if (!differs) {
-        return { verdict: 'matches', severity: 'INFO', note: 'The deposit matches what you were told.' };
+        return {
+          verdict: 'matches',
+          severity: 'INFO',
+          note: 'The deposit matches what you were told.',
+        };
       }
 
       const agreedDisp = agreedNorm !== null ? formatMoney(agreedNorm) : agreed;
       const writtenDisp = writtenNorm !== null ? formatMoney(writtenNorm) : written;
-      const worse = (agreedMonths != null && writtenMonths != null)
-        ? writtenMonths > agreedMonths
-        : worseAmount(agreedNorm, writtenNorm);
+      const worse =
+        agreedMonths != null && writtenMonths != null
+          ? writtenMonths > agreedMonths
+          : worseAmount(agreedNorm, writtenNorm);
 
       return {
         verdict: 'differs',
         severity: worse ? 'HIGH' : 'INFO',
-        note: `You said ${agreedDisp}${agreedMonths !== null ? ` (${agreedMonths} months)` : ''}. The agreement says ${writtenDisp}${writtenMonths !== null ? ` (${writtenMonths} months)` : ''}.`
+        note: `You said ${agreedDisp}${agreedMonths !== null ? ` (${agreedMonths} months)` : ''}. The agreement says ${writtenDisp}${writtenMonths !== null ? ` (${writtenMonths} months)` : ''}.`,
       };
     }
 
@@ -147,16 +167,24 @@ function computeVerdict(
       const agreedDays = parseDuration(agreed);
       const writtenDays = parseDuration(written);
       if (agreedDays === null || writtenDays === null) {
-        return { verdict: 'unclear', severity: 'INFO', note: 'Could not compare durations precisely.' };
+        return {
+          verdict: 'unclear',
+          severity: 'INFO',
+          note: 'Could not compare durations precisely.',
+        };
       }
       const diff = Math.abs(agreedDays - writtenDays);
       if (diff <= 15) {
-        return { verdict: 'matches', severity: 'INFO', note: 'The duration matches what you were told.' };
+        return {
+          verdict: 'matches',
+          severity: 'INFO',
+          note: 'The duration matches what you were told.',
+        };
       }
       return {
         verdict: 'differs',
         severity: 'MEDIUM',
-        note: `You said ${formatDays(agreedDays)}. The agreement says ${formatDays(writtenDays)}.`
+        note: `You said ${formatDays(agreedDays)}. The agreement says ${formatDays(writtenDays)}.`,
       };
     }
 
@@ -165,42 +193,62 @@ function computeVerdict(
       const writtenDays = parseLockIn(written);
 
       if (agreedDays === null && writtenDays === null) {
-        return { verdict: 'matches', severity: 'INFO', note: 'No lock-in mentioned, as you expected.' };
+        return {
+          verdict: 'matches',
+          severity: 'INFO',
+          note: 'No lock-in mentioned, as you expected.',
+        };
       }
       if (agreedDays === null && writtenDays !== null) {
         return {
           verdict: 'differs',
           severity: 'HIGH',
-          note: `You were told no lock-in. The agreement has a ${formatDays(writtenDays)} lock-in.`
+          note: `You were told no lock-in. The agreement has a ${formatDays(writtenDays)} lock-in.`,
         };
       }
       if (agreedDays !== null && writtenDays !== null) {
         const diff = writtenDays - agreedDays;
         if (diff <= 15) {
-          return { verdict: 'matches', severity: 'INFO', note: 'The lock-in period matches what you were told.' };
+          return {
+            verdict: 'matches',
+            severity: 'INFO',
+            note: 'The lock-in period matches what you were told.',
+          };
         }
         return {
           verdict: 'differs',
           severity: 'HIGH',
-          note: `You were told ${formatDays(agreedDays)}. The agreement says ${formatDays(writtenDays)}.`
+          note: `You were told ${formatDays(agreedDays)}. The agreement says ${formatDays(writtenDays)}.`,
         };
       }
-      return { verdict: 'unclear', severity: 'INFO', note: 'Could not compare lock-in periods precisely.' };
+      return {
+        verdict: 'unclear',
+        severity: 'INFO',
+        note: 'Could not compare lock-in periods precisely.',
+      };
     }
 
     case 'noticePeriod': {
       const agreedDays = parseNoticePeriod(agreed);
       const writtenDays = parseNoticePeriod(written);
       if (agreedDays === null || writtenDays === null) {
-        return { verdict: 'unclear', severity: 'INFO', note: 'Could not compare notice periods precisely.' };
+        return {
+          verdict: 'unclear',
+          severity: 'INFO',
+          note: 'Could not compare notice periods precisely.',
+        };
       }
       if (writtenDays <= agreedDays) {
-        return { verdict: 'matches', severity: 'INFO', note: 'The notice period matches or is better than what you were told.' };
+        return {
+          verdict: 'matches',
+          severity: 'INFO',
+          note: 'The notice period matches or is better than what you were told.',
+        };
       }
       return {
         verdict: 'differs',
         severity: 'HIGH',
-        note: `You agreed to ${formatDays(agreedDays)} notice. The agreement requires ${formatDays(writtenDays)}.`
+        note: `You agreed to ${formatDays(agreedDays)} notice. The agreement requires ${formatDays(writtenDays)}.`,
       };
     }
 
@@ -210,17 +258,26 @@ function computeVerdict(
       const writtenEnum = key === 'maintenance' ? parseMaintenance(written) : parseRepairs(written);
 
       if (agreedEnum === null || writtenEnum === null) {
-        return { verdict: 'unclear', severity: 'INFO', note: `Could not determine who handles ${key === 'maintenance' ? 'maintenance' : 'repairs'} precisely.` };
+        return {
+          verdict: 'unclear',
+          severity: 'INFO',
+          note: `Could not determine who handles ${key === 'maintenance' ? 'maintenance' : 'repairs'} precisely.`,
+        };
       }
       if (agreedEnum === writtenEnum) {
-        return { verdict: 'matches', severity: 'INFO', note: `The ${key === 'maintenance' ? 'maintenance' : 'repairs'} responsibility matches what you were told.` };
+        return {
+          verdict: 'matches',
+          severity: 'INFO',
+          note: `The ${key === 'maintenance' ? 'maintenance' : 'repairs'} responsibility matches what you were told.`,
+        };
       }
-      const worse = (agreedEnum === 'owner' && writtenEnum === 'me') ||
-                    (agreedEnum === 'split' && writtenEnum === 'me');
+      const worse =
+        (agreedEnum === 'owner' && writtenEnum === 'me') ||
+        (agreedEnum === 'split' && writtenEnum === 'me');
       return {
         verdict: 'differs',
         severity: worse ? 'HIGH' : 'MEDIUM',
-        note: `You were told ${formatParty(agreedEnum)}. The agreement says ${formatParty(writtenEnum)}.`
+        note: `You were told ${formatParty(agreedEnum)}. The agreement says ${formatParty(writtenEnum)}.`,
       };
     }
 
@@ -229,45 +286,68 @@ function computeVerdict(
       const writtenPct = parseIncrease(written);
 
       if (agreedPct === null && writtenPct === null) {
-        return { verdict: 'matches', severity: 'INFO', note: 'No rent increase mentioned, as you expected.' };
+        return {
+          verdict: 'matches',
+          severity: 'INFO',
+          note: 'No rent increase mentioned, as you expected.',
+        };
       }
       if (agreedPct === null && writtenPct !== null) {
         return {
           verdict: 'differs',
           severity: 'HIGH',
-          note: `You were told no increase. The agreement has a ${writtenPct}% increase clause.`
+          note: `You were told no increase. The agreement has a ${writtenPct}% increase clause.`,
         };
       }
       if (agreedPct !== null && writtenPct !== null) {
         if (writtenPct <= agreedPct) {
-          return { verdict: 'matches', severity: 'INFO', note: 'The rent increase matches or is better than what you were told.' };
+          return {
+            verdict: 'matches',
+            severity: 'INFO',
+            note: 'The rent increase matches or is better than what you were told.',
+          };
         }
         return {
           verdict: 'differs',
           severity: 'HIGH',
-          note: `You were told ${agreedPct}% increase. The agreement says ${writtenPct}%.`
+          note: `You were told ${agreedPct}% increase. The agreement says ${writtenPct}%.`,
         };
       }
-      return { verdict: 'unclear', severity: 'INFO', note: 'Could not compare rent increase precisely.' };
+      return {
+        verdict: 'unclear',
+        severity: 'INFO',
+        note: 'Could not compare rent increase precisely.',
+      };
     }
 
     case 'extras': {
-      const agreedExtras = agreed.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+      const agreedExtras = agreed
+        .split(',')
+        .map(s => s.trim().toLowerCase())
+        .filter(Boolean);
       const writtenLower = written.toLowerCase();
       const missing = agreedExtras.filter(e => !writtenLower.includes(e));
 
       if (missing.length === 0) {
-        return { verdict: 'matches', severity: 'INFO', note: 'The extra items you mentioned are covered in the agreement.' };
+        return {
+          verdict: 'matches',
+          severity: 'INFO',
+          note: 'The extra items you mentioned are covered in the agreement.',
+        };
       }
       return {
         verdict: 'differs',
         severity: 'MEDIUM',
-        note: `You were promised: ${missing.join(', ')}. These are not mentioned in the agreement.`
+        note: `You were promised: ${missing.join(', ')}. These are not mentioned in the agreement.`,
       };
     }
 
     case 'city': {
-      return { verdict: 'matches', severity: 'INFO', note: 'City noted for state-specific context.' };
+      return {
+        verdict: 'matches',
+        severity: 'INFO',
+        note: 'City noted for state-specific context.',
+      };
     }
 
     default:
@@ -305,7 +385,7 @@ function getTopicLabel(key: keyof InterviewAnswers): string {
     maintenance: 'maintenance charges',
     repairs: 'repairs',
     increase: 'rent increase',
-    extras: 'extra promises'
+    extras: 'extra promises',
   };
   return labels[key];
 }
@@ -321,22 +401,27 @@ function getSuggestedQuestion(key: keyof InterviewAnswers): string {
     maintenance: 'Who pays society maintenance, water, electricity and property tax?',
     repairs: 'Who handles major repairs vs. small day-to-day fixes?',
     increase: 'Is there a fixed percentage for rent increase on renewal?',
-    extras: 'Can the promised extras be added as a schedule to the agreement?'
+    extras: 'Can the promised extras be added as a schedule to the agreement?',
   };
   return questions[key];
 }
 
 function formatParty(value: 'me' | 'owner' | 'split' | 'not_discussed'): string {
   switch (value) {
-    case 'me': return 'you (tenant)';
-    case 'owner': return 'the owner';
-    case 'split': return 'both (split)';
-    case 'not_discussed': return 'not specified';
+    case 'me':
+      return 'you (tenant)';
+    case 'owner':
+      return 'the owner';
+    case 'split':
+      return 'both (split)';
+    case 'not_discussed':
+      return 'not specified';
   }
 }
 
 function parseMoney(input: string): number | null {
-  const cleaned = input.trim()
+  const cleaned = input
+    .trim()
     .replace(/[₹$]/g, '')
     .replace(/rs\.?/gi, '')
     .replace(/inr/gi, '')
@@ -412,10 +497,22 @@ function parseRepairs(input: string): 'me' | 'owner' | 'split' | 'not_discussed'
 }
 
 function formatMoney(amount: number): string {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
-/** Main entry: build match rows from interview answers and model findings */
+/** Answers that mean "I don't know what was promised" — equivalent to skipping (INTERVIEW_SPEC). */
+const NO_PROMISE = new Set(['not_sure', 'not_discussed']);
+
+/**
+ * Main entry: build match rows from interview answers and model findings.
+ * Only real promises become rows: skipped questions, "not sure"/"not discussed" answers and the
+ * city (used only for "rules vary by state" context) are excluded, so they can never show up as
+ * a mismatch or as "not covered".
+ */
 export function buildMatchRows(
   answers: InterviewAnswers,
   modelFindings: Array<{
@@ -434,9 +531,12 @@ export function buildMatchRows(
   for (const answerKey of Object.keys(answers) as Array<keyof InterviewAnswers>) {
     const agreedValue = answers[answerKey];
     if (!agreedValue || (Array.isArray(agreedValue) && agreedValue.length === 0)) continue;
+    if (answerKey === 'city') continue;
+    if (typeof agreedValue === 'string' && NO_PROMISE.has(agreedValue.trim().toLowerCase()))
+      continue;
 
     const finding = modelFindings.find(f => f.key === answerKey);
-    const evidence = finding?.clauseId ? verifiedQuotes.get(finding.clauseId) ?? null : null;
+    const evidence = finding?.clauseId ? (verifiedQuotes.get(finding.clauseId) ?? null) : null;
 
     const raw = compareAnswer(
       answerKey,

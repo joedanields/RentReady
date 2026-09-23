@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  parseMonthsCount,
   parseMoney,
   parseDuration,
   parseLockIn,
@@ -10,7 +11,7 @@ import {
   normaliseAnswers,
   formatMoney,
   formatMonths,
-  formatDays
+  formatDays,
 } from './normalise';
 
 describe('parseMoney', () => {
@@ -164,7 +165,7 @@ describe('normaliseAnswers', () => {
       maintenance: 'owner',
       repairs: 'split',
       increase: '5%',
-      extras: ['Parking included']
+      extras: ['Parking included'],
     });
     expect(out.city).toBe('Bengaluru');
     expect(out.monthlyRent).toBe(40000);
@@ -189,7 +190,7 @@ describe('normaliseAnswers', () => {
       maintenance: null,
       repairs: null,
       increase: null,
-      extras: []
+      extras: [],
     });
     expect(out.deposit).toEqual({ amount: null, months: 2 });
   });
@@ -205,7 +206,7 @@ describe('normaliseAnswers', () => {
       maintenance: null,
       repairs: null,
       increase: null,
-      extras: []
+      extras: [],
     });
     expect(out.deposit).toBeNull();
     expect(out.monthlyRent).toBeNull();
@@ -222,7 +223,7 @@ describe('normaliseAnswers', () => {
       maintenance: null,
       repairs: null,
       increase: null,
-      extras: undefined as unknown as string[]
+      extras: undefined as unknown as string[],
     });
     expect(out.extras).toEqual([]);
   });
@@ -248,5 +249,39 @@ describe('formatters', () => {
     expect(formatDays(45)).toBe('45 days');
     expect(formatDays(1)).toBe('1 day');
     expect(formatDays(null)).toBe('Not specified');
+  });
+});
+
+describe('parseMonthsCount', () => {
+  it('reads digits, decimals and number words', () => {
+    expect(parseMonthsCount('2 months')).toBe(2);
+    expect(parseMonthsCount("two months' rent")).toBe(2);
+    expect(parseMonthsCount('1.5 months')).toBe(1.5);
+    expect(parseMonthsCount('  Three Months ')).toBe(3);
+    expect(parseMonthsCount('1 month')).toBe(1);
+  });
+
+  it('rejects amounts, unknown words and absurd counts', () => {
+    expect(parseMonthsCount('80000')).toBeNull();
+    expect(parseMonthsCount('many months')).toBeNull();
+    expect(parseMonthsCount('0 months')).toBeNull();
+    expect(parseMonthsCount('36 months')).toBeNull();
+    expect(parseMonthsCount('')).toBeNull();
+  });
+
+  it('keeps "two months" from being read as ₹2 in a deposit answer', () => {
+    const out = normaliseAnswers({
+      city: null,
+      monthlyRent: '40000',
+      deposit: 'two months',
+      duration: null,
+      lockIn: null,
+      noticePeriod: null,
+      maintenance: null,
+      repairs: null,
+      increase: null,
+      extras: [],
+    });
+    expect(out.deposit).toEqual({ amount: null, months: 2 });
   });
 });

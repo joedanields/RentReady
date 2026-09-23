@@ -20,13 +20,22 @@ describe('responseSchemas', () => {
   });
 
   it('ask schema constrains status values', () => {
-    expect(ASK_SCHEMA.properties.status.enum).toEqual(['answered', 'not_in_document', 'needs_professional']);
+    expect(ASK_SCHEMA.properties.status.enum).toEqual([
+      'answered',
+      'not_in_document',
+      'needs_professional',
+    ]);
     expect(ASK_SCHEMA.required).toContain('citations');
   });
 
   it('negotiation schema requires message and items', () => {
     expect(NEGOTIATION_SCHEMA.required).toEqual(['message', 'items']);
-    expect(NEGOTIATION_SCHEMA.properties.items.items.required).toEqual(['rowId', 'ask', 'reason', 'suggestedWording']);
+    expect(NEGOTIATION_SCHEMA.properties.items.items.required).toEqual([
+      'rowId',
+      'ask',
+      'reason',
+      'suggestedWording',
+    ]);
   });
 
   it('defaults to the flash model', () => {

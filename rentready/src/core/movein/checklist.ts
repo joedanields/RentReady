@@ -1,6 +1,12 @@
 /** Move-in kit — checklist, photo guide, meter readings, timeline */
 
-import type { MoveInKit, MoveInChecklistItem, TimelineEvent, MatchRow, NormalisedAnswers } from '../types.js';
+import type {
+  MoveInKit,
+  MoveInChecklistItem,
+  TimelineEvent,
+  MatchRow,
+  NormalisedAnswers,
+} from '../types.js';
 
 export const ROOMS = [
   'Living Room',
@@ -11,7 +17,7 @@ export const ROOMS = [
   'Bathroom 1',
   'Bathroom 2',
   'Balcony',
-  'Common Areas'
+  'Common Areas',
 ] as const;
 
 export const CHECKLIST_TEMPLATE: Omit<MoveInChecklistItem, 'id' | 'completed'>[] = [
@@ -59,7 +65,7 @@ export const CHECKLIST_TEMPLATE: Omit<MoveInChecklistItem, 'id' | 'completed'>[]
   // Common Areas
   { room: 'Common Areas', description: 'Main door — lock, hinges, peephole' },
   { room: 'Common Areas', description: 'Lobby / corridor access' },
-  { room: 'Common Areas', description: 'Meter box — electricity, water, gas access' }
+  { room: 'Common Areas', description: 'Meter box — electricity, water, gas access' },
 ];
 
 export const PHOTO_GUIDE = [
@@ -70,20 +76,17 @@ export const PHOTO_GUIDE = [
   'Photo of gas pipeline connection and valve',
   'Photo of all keys and access cards received',
   'Video walkthrough (30-60s) with narration of issues',
-  'Save to cloud immediately (Google Photos, iCloud, etc.)'
+  'Save to cloud immediately (Google Photos, iCloud, etc.)',
 ];
 
 export const METER_TYPES = [
   { id: 'electricity', label: 'Electricity Meter', unit: 'kWh' },
   { id: 'water', label: 'Water Meter', unit: 'kl' },
-  { id: 'gas', label: 'Gas Meter', unit: 'm³' }
+  { id: 'gas', label: 'Gas Meter', unit: 'm³' },
 ] as const;
 
 /** Build the full move-in kit */
-export function buildMoveInKit(
-  interview: NormalisedAnswers,
-  matches: MatchRow[]
-): MoveInKit {
+export function buildMoveInKit(interview: NormalisedAnswers, matches: MatchRow[]): MoveInKit {
   const checklist = buildChecklist();
   const timeline = buildTimeline(interview, matches);
 
@@ -92,9 +95,9 @@ export function buildMoveInKit(
     meterReadings: {
       electricity: '',
       water: '',
-      gas: ''
+      gas: '',
     },
-    timeline
+    timeline,
   };
 }
 
@@ -115,7 +118,7 @@ function buildChecklist(): MoveInChecklistItem[] {
         ...item,
         room: `Bedroom ${b}`,
         id: `chk-${++id}`,
-        completed: false
+        completed: false,
       });
     }
   }
@@ -132,7 +135,7 @@ function buildChecklist(): MoveInChecklistItem[] {
         ...item,
         room: `Bathroom ${b}`,
         id: `chk-${++id}`,
-        completed: false
+        completed: false,
       });
     }
   }
@@ -172,7 +175,8 @@ function buildTimeline(interview: NormalisedAnswers, matches: MatchRow[]): Timel
     id: `tl-${++id}`,
     label: 'Move-in / Handover',
     date: startDate.toISOString().split('T')[0]!,
-    description: 'Complete inspection checklist, take meter readings, photograph everything, sign inventory.'
+    description:
+      'Complete inspection checklist, take meter readings, photograph everything, sign inventory.',
   });
 
   // Notice deadline (if planning to leave at term end)
@@ -182,7 +186,7 @@ function buildTimeline(interview: NormalisedAnswers, matches: MatchRow[]): Timel
     id: `tl-${++id}`,
     label: 'Notice deadline (if leaving at term end)',
     date: noticeDate.toISOString().split('T')[0]!,
-    description: `Give written notice by this date to leave when the agreement expires (${noticeDays}-day notice).`
+    description: `Give written notice by this date to leave when the agreement expires (${noticeDays}-day notice).`,
   });
 
   // Renewal reminder (30 days before expiry)
@@ -192,7 +196,7 @@ function buildTimeline(interview: NormalisedAnswers, matches: MatchRow[]): Timel
     id: `tl-${++id}`,
     label: 'Renewal discussion reminder',
     date: renewalDate.toISOString().split('T')[0]!,
-    description: 'Start discussing renewal or exit with the owner (30 days before expiry).'
+    description: 'Start discussing renewal or exit with the owner (30 days before expiry).',
   });
 
   // Agreement expiry
@@ -202,7 +206,7 @@ function buildTimeline(interview: NormalisedAnswers, matches: MatchRow[]): Timel
     id: `tl-${++id}`,
     label: 'Agreement expires',
     date: expiryDate.toISOString().split('T')[0]!,
-    description: 'Term ends. Deposit should be refunded within agreed timeline (ideally 15 days).'
+    description: 'Term ends. Deposit should be refunded within agreed timeline (ideally 15 days).',
   });
 
   // Deposit refund deadline (15 days after handover)
@@ -212,7 +216,7 @@ function buildTimeline(interview: NormalisedAnswers, matches: MatchRow[]): Timel
     id: `tl-${++id}`,
     label: 'Deposit refund deadline (target)',
     date: refundDate.toISOString().split('T')[0]!,
-    description: 'Deposit should be refunded by now. Follow up if not received.'
+    description: 'Deposit should be refunded by now. Follow up if not received.',
   });
 
   return events;
@@ -237,8 +241,12 @@ export function exportMoveInKitAsMarkdown(kit: MoveInKit, interview: NormalisedA
   lines.push('# Move-In Kit');
   lines.push('');
   lines.push(`**Property:** ${interview.city ?? 'Not specified'}`);
-  lines.push(`**Monthly Rent:** ${interview.monthlyRent ? `₹${interview.monthlyRent.toLocaleString('en-IN')}` : 'Not specified'}`);
-  lines.push(`**Deposit:** ${interview.deposit?.amount ? `₹${interview.deposit.amount.toLocaleString('en-IN')}` : 'Not specified'}`);
+  lines.push(
+    `**Monthly Rent:** ${interview.monthlyRent ? `₹${interview.monthlyRent.toLocaleString('en-IN')}` : 'Not specified'}`
+  );
+  lines.push(
+    `**Deposit:** ${interview.deposit?.amount ? `₹${interview.deposit.amount.toLocaleString('en-IN')}` : 'Not specified'}`
+  );
   lines.push('');
 
   lines.push('## Inspection Checklist');
@@ -257,7 +265,9 @@ export function exportMoveInKitAsMarkdown(kit: MoveInKit, interview: NormalisedA
   lines.push('## Meter Readings');
   lines.push('');
   for (const meter of METER_TYPES) {
-    lines.push(`- **${meter.label}:** ${kit.meterReadings[meter.id] || 'Not recorded'} ${meter.unit}`);
+    lines.push(
+      `- **${meter.label}:** ${kit.meterReadings[meter.id] || 'Not recorded'} ${meter.unit}`
+    );
   }
   lines.push('');
 

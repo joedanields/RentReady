@@ -1,184 +1,497 @@
-/** Interview screens — one question per step, skippable, keyboard navigable, live money echo */
+/**
+ * Interview — one question per screen, every question skippable, real form controls, and a
+ * summary with per-answer edit. Stored values are the strings core/interview/normalise.ts parses.
+ */
 
-import { useState } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { useApp } from '../../state/AppProvider';
 import { t } from '../../i18n';
-import { INTERVIEW_QUESTIONS } from '../../core/interview/questions';
-import { parseMoney, formatMoney } from '../../core/interview/normalise';
+import { INTERVIEW_QUESTIONS, type InterviewQuestion } from '../../core/interview/questions';
+import type { InterviewAnswers } from '../../core/types';
 import { Progress } from '../../components/Progress';
 import { Button } from '../../components/Button';
+import {
+  FOLLOW_UPS,
+  NO_PROMISE_VALUES,
+  chipLabel,
+  displayAnswer,
+  moneyEcho,
+  optionLabel,
+  parseTextAnswer,
+  questionHint,
+  questionLabel,
+  questionPlaceholder,
+  selectedOption,
+  type AnswerKey,
+} from './answerText';
+
+const TOTAL = INTERVIEW_QUESTIONS.length;
+const SUMMARY_STEP = TOTAL;
+
+type AnswerValue = string | string[] | null;
 
 export function Interview({ onDone, onBack }: { onDone: () => void; onBack: () => void }) {
   const { state, dispatch } = useApp();
-  const [step, setStep] = useState(state.interview.currentStep);
-  const [textValue, setTextValue] = useState('');
-  const [customExtra, setCustomExtra] = useState('');
+  const [step, setStep] = useState(() =>
+    state.interview.completed ? SUMMARY_STEP : Math.min(state.interview.currentStep, TOTAL - 1)
+  );
+  // When editing one answer from the summary, Next/Back return to the summary.
+  const [editing, setEditing] = useState(false);
 
-  const total = INTERVIEW_QUESTIONS.length;
-  const question = INTERVIEW_QUESTIONS[step];
-  if (!question) return null;
+  const goTo = (next: number) => {
+    setStep(next);
+    dispatch({ type: 'SET_INTERVIEW_STEP', step: next });
+    if (next === SUMMARY_STEP) dispatch({ type: 'SET_INTERVIEW_COMPLETED', completed: true });
+  };
 
-  const currentAnswer = state.interview.answers[question.key];
-  const currentExtras = state.interview.answers.extras ?? [];
-
-  const advance = () => {
-    dispatch({ type: 'SET_INTERVIEW_STEP', step });
-    if (step < total - 1) {
-      setStep(step + 1);
-      setTextValue('');
+  const save = (key: AnswerKey, value: AnswerValue) => {
+    if (value === null || (Array.isArray(value) && value.length === 0)) {
+      dispatch({ type: 'CLEAR_INTERVIEW_ANSWER', key });
     } else {
-      dispatch({ type: 'SET_INTERVIEW_COMPLETED', completed: true });
-      onDone();
+      dispatch({ type: 'SET_INTERVIEW_ANSWER', key, value });
     }
   };
 
-  const handleSelect = (v: string) => {
-    dispatch({ type: 'SET_INTERVIEW_ANSWER', key: question.key, value: v });
-    advance();
+  const advance = () => {
+    if (editing) {
+      setEditing(false);
+      goTo(SUMMARY_STEP);
+    } else {
+      goTo(step + 1);
+    }
   };
 
-  const handleMulti = (v: string) => {
-    const next = currentExtras.includes(v)
-      ? currentExtras.filter(x => x !== v)
-      : [...currentExtras, v];
-    dispatch({ type: 'SET_INTERVIEW_ANSWER', key: 'extras', value: next });
+  const back = () => {
+    if (editing) {
+      setEditing(false);
+      goTo(SUMMARY_STEP);
+    } else if (step === 0) {
+      onBack();
+    } else {
+      goTo(step - 1);
+    }
   };
 
-  const moneyEcho =
-    question.type === 'money' && textValue.trim() ? parseMoney(textValue) : null;
-  const moneyText =
-    (question.type === 'money' || question.type === 'text') &&
-    typeof currentAnswer === 'string' &&
-    currentAnswer
-      ? currentAnswer
-      : textValue;
+  if (step >= SUMMARY_STEP) {
+    return (
+      <InterviewSummary
+        answers={state.interview.answers}
+        onEdit={index => {
+          setEditing(true);
+          goTo(index);
+        }}
+        onBack={() => goTo(TOTAL - 1)}
+        onContinue={onDone}
+      />
+    );
+  }
+
+  const question = INTERVIEW_QUESTIONS[step];
+  if (!question) return null;
 
   return (
-    <section aria-label="Interview" className="flex flex-col gap-4 pt-2">
-      <div className="flex items-center justify-between text-sm text-muted">
-        <span>{t('progress', { current: step + 1, total })}</span>
-      </div>
-      <Progress current={step + 1} total={total} />
+    <QuestionStep
+      key={question.key}
+      question={question}
+      index={step}
+      answers={state.interview.answers}
+      editing={editing}
+      onAnswer={value => {
+        save(question.key, value);
+        advance();
+      }}
+      onSkip={() => {
+        save(question.key, null);
+        advance();
+      }}
+      onBack={back}
+      {...(step === 0 && !editing
+        ? {
+            onSkipAll: () => {
+              dispatch({ type: 'SET_INTERVIEW_COMPLETED', completed: true });
+              onDone();
+            },
+          }
+        : {})}
+    />
+  );
+}
+
+interface QuestionStepProps {
+  question: InterviewQuestion;
+  index: number;
+  answers: InterviewAnswers;
+  editing: boolean;
+  onAnswer: (value: AnswerValue) => void;
+  onSkip: () => void;
+  onBack: () => void;
+  onSkipAll?: () => void;
+}
+
+function QuestionStep({
+  question,
+  index,
+  answers,
+  editing,
+  onAnswer,
+  onSkip,
+  onBack,
+  onSkipAll,
+}: QuestionStepProps) {
+  const id = useId();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const stored = question.key === 'extras' ? null : answers[question.key];
+  const followUp = FOLLOW_UPS[question.key];
+
+  const [text, setText] = useState(
+    question.type === 'text' || question.type === 'money' ? (stored ?? '') : ''
+  );
+  const [choice, setChoice] = useState<string | null>(() => selectedOption(question, stored));
+  const [followText, setFollowText] = useState(() =>
+    followUp && stored && choice === followUp.trigger && stored !== followUp.trigger
+      ? followUp.decompose(stored)
+      : ''
+  );
+  const [extras, setExtras] = useState<string[]>(answers.extras);
+  const [custom, setCustom] = useState('');
+  const [announce, setAnnounce] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const errorFieldRef = useRef<HTMLInputElement>(null);
+
+  // Each step is a new screen: move focus to its heading so screen readers announce it.
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
+
+  const hintId = `${id}-hint`;
+  const echoId = `${id}-echo`;
+  const errorId = `${id}-error`;
+  const followId = `${id}-follow`;
+  const headingId = `${id}-heading`;
+
+  const fail = (message: string) => {
+    setError(message);
+    // Let the error render before moving focus back to the field that needs fixing.
+    queueMicrotask(() => errorFieldRef.current?.focus());
+  };
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (question.type === 'multiselect') {
+      onAnswer(extras);
+      return;
+    }
+    if (question.type === 'select') {
+      if (choice === null || NO_PROMISE_VALUES.has(choice)) return onAnswer(null);
+      if (followUp && choice === followUp.trigger) {
+        const composed = followUp.compose(followText);
+        return composed === null ? fail(t(followUp.error)) : onAnswer(composed);
+      }
+      return onAnswer(choice);
+    }
+    const parsed = parseTextAnswer(question.key, text);
+    if (parsed === null) return onAnswer(null);
+    return parsed.ok ? onAnswer(parsed.value) : fail(t(parsed.error));
+  };
+
+  // Number keys pick an option (INTERVIEW_SPEC keyboard details); arrows work natively.
+  const onOptionKeys = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (!question.options) return;
+    const n = Number(e.key);
+    const opt = Number.isInteger(n) && n >= 1 ? question.options[n - 1] : undefined;
+    if (!opt) return;
+    e.preventDefault();
+    setChoice(opt.value);
+    setError(null);
+    document.getElementById(`${id}-opt-${opt.value}`)?.focus();
+  };
+
+  const addCustom = () => {
+    const item = custom.trim();
+    if (!item) return;
+    if (!extras.includes(item)) setExtras([...extras, item]);
+    setCustom('');
+    setAnnounce(t('extrasAdded', { item }));
+  };
+
+  const label = questionLabel(question);
+  const hint = questionHint(question);
+  const heading = (
+    <h1
+      id={headingId}
+      ref={headingRef}
+      tabIndex={-1}
+      className="text-2xl font-semibold leading-snug focus:outline-none"
+    >
+      {label}
+    </h1>
+  );
+  const describedBy = (...ids: Array<string | false>) => ids.filter(Boolean).join(' ') || undefined;
+  const echo =
+    question.type === 'money' ? moneyEcho(question.key, text, answers.monthlyRent) : null;
+  const inputClass =
+    'min-h-[44px] w-full rounded-lg border border-border bg-surface px-3 aria-[invalid=true]:border-differs';
+
+  return (
+    <section aria-label={t('interviewNav')} className="flex flex-col gap-4 pt-2">
+      <p className="text-sm text-muted">{t('progress', { current: index + 1, total: TOTAL })}</p>
+      <Progress
+        current={index + 1}
+        total={TOTAL}
+        label={t('progress', { current: index + 1, total: TOTAL })}
+      />
 
       <form
-        onSubmit={e => {
-          e.preventDefault();
-          if (question.type === 'select' || question.type === 'multiselect') return;
-          if ((question.type === 'text' || question.type === 'money') && textValue.trim()) {
-            dispatch({ type: 'SET_INTERVIEW_ANSWER', key: question.key, value: textValue.trim() });
-          }
-          advance();
-        }}
-        className="rounded-xl border border-border p-6"
+        onSubmit={submit}
+        noValidate
+        className="flex flex-col gap-4 rounded-xl border border-border p-4 sm:p-6"
       >
-        <legend className="mb-1 block text-lg font-medium">{question.label}</legend>
-        <p className="mb-4 text-sm text-muted">{question.hint}</p>
-
-        {question.type === 'select' && question.options && (
-          <div role="radiogroup" aria-label={question.label} className="flex flex-col gap-2">
-            {question.options.map(opt => (
-              <button
-                key={opt.value}
-                type="button"
-                role="radio"
-                aria-checked={currentAnswer === opt.value}
-                onClick={() => handleSelect(opt.value)}
-                className="min-h-[44px] w-full rounded-lg border border-border px-4 text-left hover:border-primary"
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {question.type === 'multiselect' && question.chips && (
-          <div className="flex flex-col gap-3">
-            <div role="group" aria-label={question.label} className="flex flex-wrap gap-2">
-              {question.chips.map(chip => (
-                <button
-                  key={chip}
-                  type="button"
-                  role="checkbox"
-                  aria-checked={currentExtras.includes(chip)}
-                  onClick={() => handleMulti(chip)}
-                  className={`min-h-[44px] rounded-full border px-4 text-sm ${
-                    currentExtras.includes(chip)
-                      ? 'border-primary bg-primary text-white'
-                      : 'border-border hover:border-primary'
-                  }`}
-                >
-                  {chip}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <label htmlFor="extra-custom" className="sr-only">
-                Add your own promise
-              </label>
-              <input
-                id="extra-custom"
-                type="text"
-                value={customExtra}
-                onChange={e => setCustomExtra(e.target.value)}
-                placeholder={question.placeholder}
-                className="min-h-[44px] flex-1 rounded-lg border border-border px-3"
-              />
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  if (customExtra.trim()) {
-                    dispatch({
-                      type: 'SET_INTERVIEW_ANSWER',
-                      key: 'extras',
-                      value: [...currentExtras, customExtra.trim()]
-                    });
-                    setCustomExtra('');
-                  }
-                }}
-              >
-                {t('next')}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {(question.type === 'text' || question.type === 'money') && (
-          <div className="flex flex-col gap-3">
-            <label htmlFor={`interview-${question.key}`} className="sr-only">
-              {question.label}
-            </label>
+        {question.type === 'text' || question.type === 'money' ? (
+          <>
+            {heading}
+            <p id={hintId} className="text-sm text-muted">
+              {hint}
+            </p>
             <input
-              id={`interview-${question.key}`}
+              id={`${id}-input`}
+              ref={errorFieldRef}
               type="text"
-              inputMode={question.type === 'money' ? 'numeric' : 'text'}
-              value={moneyText}
-              onChange={e => setTextValue(e.target.value)}
-              placeholder={question.placeholder}
-              className="min-h-[44px] w-full rounded-lg border border-border px-3"
+              inputMode={question.type === 'money' ? 'decimal' : 'text'}
+              autoComplete={question.key === 'city' ? 'address-level2' : 'off'}
+              aria-labelledby={headingId}
+              aria-describedby={describedBy(
+                hintId,
+                question.type === 'money' && echoId,
+                !!error && errorId
+              )}
+              aria-invalid={error ? true : undefined}
+              value={text}
+              placeholder={questionPlaceholder(question)}
+              onChange={e => {
+                setText(e.target.value);
+                setError(null);
+              }}
+              className={inputClass}
             />
-            {moneyEcho !== null && (
-              <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-900">
-                {formatMoney(moneyEcho)}
+            {question.type === 'money' && (
+              <p
+                id={echoId}
+                aria-live="polite"
+                className={
+                  echo ? 'rounded-lg bg-green-50 px-3 py-2 text-sm text-green-900' : 'sr-only'
+                }
+              >
+                {echo}
               </p>
             )}
+          </>
+        ) : (
+          <fieldset aria-describedby={describedBy(hintId)} className="flex min-w-0 flex-col gap-3">
+            <legend className="mb-1">{heading}</legend>
+            <p id={hintId} className="text-sm text-muted">
+              {hint}
+            </p>
+
+            {question.type === 'select' &&
+              question.options?.map((opt, i) => (
+                <label
+                  key={opt.value}
+                  htmlFor={`${id}-opt-${opt.value}`}
+                  className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg border border-border px-4 py-2 has-[:checked]:border-primary has-[:checked]:bg-green-50"
+                >
+                  <input
+                    id={`${id}-opt-${opt.value}`}
+                    type="radio"
+                    name={`${id}-choice`}
+                    value={opt.value}
+                    checked={choice === opt.value}
+                    onKeyDown={onOptionKeys}
+                    onChange={() => {
+                      setChoice(opt.value);
+                      setError(null);
+                    }}
+                    className="h-5 w-5 shrink-0 accent-primary"
+                  />
+                  <span className="flex-1">{optionLabel(question, opt.value)}</span>
+                  <span aria-hidden="true" className="text-xs text-muted">
+                    {i + 1}
+                  </span>
+                </label>
+              ))}
+
+            {question.type === 'multiselect' && (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    ...(question.chips ?? []),
+                    ...extras.filter(x => !question.chips?.includes(x)),
+                  ].map(chip => (
+                    <label
+                      key={chip}
+                      className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full border border-border px-4 has-[:checked]:border-primary has-[:checked]:bg-green-50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={extras.includes(chip)}
+                        onChange={() =>
+                          setExtras(
+                            extras.includes(chip)
+                              ? extras.filter(x => x !== chip)
+                              : [...extras, chip]
+                          )
+                        }
+                        className="h-5 w-5 accent-primary"
+                      />
+                      <span>{chipLabel(chip)}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor={`${id}-custom`} className="text-sm font-medium">
+                    {t('extrasCustomLabel')}
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      id={`${id}-custom`}
+                      type="text"
+                      value={custom}
+                      placeholder={t('extrasCustomPlaceholder')}
+                      onChange={e => setCustom(e.target.value)}
+                      onKeyDown={e => {
+                        // Enter adds the item here instead of submitting the whole step.
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addCustom();
+                        }
+                      }}
+                      className={`${inputClass} flex-1`}
+                    />
+                    <Button type="button" variant="secondary" onClick={addCustom}>
+                      {t('extrasAdd')}
+                    </Button>
+                  </div>
+                  <p aria-live="polite" className="sr-only">
+                    {announce}
+                  </p>
+                </div>
+              </>
+            )}
+          </fieldset>
+        )}
+
+        {followUp && choice === followUp.trigger && (
+          <div className="flex flex-col gap-2">
+            <label htmlFor={followId} className="font-medium">
+              {t(followUp.label)}
+            </label>
+            <input
+              id={followId}
+              ref={errorFieldRef}
+              type="text"
+              inputMode={followUp.inputMode}
+              aria-describedby={describedBy(!!error && errorId)}
+              aria-invalid={error ? true : undefined}
+              value={followText}
+              placeholder={t(followUp.placeholder)}
+              onChange={e => {
+                setFollowText(e.target.value);
+                setError(null);
+              }}
+              className={inputClass}
+            />
           </div>
         )}
 
-        <div className="mt-4 flex items-center justify-between gap-3">
+        {error && (
+          <p id={errorId} role="alert" className="text-sm font-medium text-differs">
+            <span aria-hidden="true">⚠ </span>
+            {error}
+          </p>
+        )}
+
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
           <Button type="button" variant="ghost" onClick={onBack}>
-            {t('back')}
+            {editing ? t('summaryTitle') : t('back')}
           </Button>
           <div className="flex gap-2">
-            <Button type="button" variant="secondary" onClick={advance}>
+            <Button type="button" variant="secondary" onClick={onSkip}>
               {t('skip')}
             </Button>
-            {(question.type === 'text' || question.type === 'money') && (
-              <Button type="submit">{t('next')}</Button>
-            )}
+            <Button type="submit">{editing ? t('saveAndReturn') : t('next')}</Button>
           </div>
         </div>
       </form>
+
+      {onSkipAll && (
+        <Button type="button" variant="ghost" onClick={onSkipAll} className="self-start">
+          {t('skipAll')}
+        </Button>
+      )}
+    </section>
+  );
+}
+
+function InterviewSummary({
+  answers,
+  onEdit,
+  onBack,
+  onContinue,
+}: {
+  answers: InterviewAnswers;
+  onEdit: (index: number) => void;
+  onBack: () => void;
+  onContinue: () => void;
+}) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
+
+  const rows = INTERVIEW_QUESTIONS.map((q, i) => ({ q, i, text: displayAnswer(q, answers) }));
+  const allSkipped = rows.every(r => r.text === null);
+
+  return (
+    <section aria-labelledby="summary-title" className="flex flex-col gap-4 pt-2">
+      <h1
+        id="summary-title"
+        ref={headingRef}
+        tabIndex={-1}
+        className="text-2xl font-semibold focus:outline-none"
+      >
+        {t('summaryTitle')}
+      </h1>
+      <p className="text-muted">{allSkipped ? t('summaryAllSkipped') : t('summaryIntro')}</p>
+
+      <dl className="divide-y divide-border rounded-xl border border-border">
+        {rows.map(({ q, i, text }) => (
+          <div key={q.key} className="p-4">
+            <dt className="text-sm text-muted">{questionLabel(q)}</dt>
+            <dd className="flex flex-wrap items-center justify-between gap-2">
+              <span className={text ? 'min-w-0 break-words font-medium' : 'italic text-muted'}>
+                {text ?? t('summaryNotAnswered')}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(i)}
+                aria-label={t('summaryEditLabel', { question: questionLabel(q) })}
+              >
+                {t('summaryEdit')}
+              </Button>
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Button type="button" variant="ghost" onClick={onBack}>
+          {t('back')}
+        </Button>
+        <Button type="button" size="lg" onClick={onContinue}>
+          {t('addAgreement')}
+        </Button>
+      </div>
     </section>
   );
 }

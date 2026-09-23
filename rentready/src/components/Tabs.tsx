@@ -13,7 +13,7 @@ export function Tabs({
   tabs,
   activeId,
   onChange,
-  children
+  children,
 }: {
   tabs: TabDef[];
   activeId: string;

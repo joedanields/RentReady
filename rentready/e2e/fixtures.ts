@@ -18,7 +18,9 @@ export const test = base.extend<{ pageErrors: string[] }>({
 
 /** Axe scan that fails on serious/critical findings (ACCESSIBILITY.md target). */
 export async function expectNoSeriousAxe(page: Page): Promise<void> {
-  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+    .analyze();
   const serious = results.violations
     .filter(v => v.impact === 'serious' || v.impact === 'critical')
     .map(v => ({ id: v.id, targets: v.nodes.map(n => n.target.join(' ')) }));

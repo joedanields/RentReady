@@ -7,7 +7,7 @@ import {
   serialiseClausesForPrompt,
   truncateQuestion,
   sanitizeUserText,
-  type PromptOptions
+  type PromptOptions,
 } from './prompts';
 import type { Clause } from '../types';
 
@@ -18,16 +18,19 @@ const clause = (id: string, text: string): Clause => ({
   text,
   page: 1,
   pageEnd: 1,
-  order: 1
+  order: 1,
 });
 
-const CLAUSES = [clause('c001', 'The monthly rent <is> Rs. 40,000.'), clause('c002', 'Notice: 1 month.')];
+const CLAUSES = [
+  clause('c001', 'The monthly rent <is> Rs. 40,000.'),
+  clause('c002', 'Notice: 1 month.'),
+];
 
 const opts = (overrides: Partial<PromptOptions> = {}): PromptOptions => ({
   language: 'en',
   readingLevel: 'standard',
   city: 'Pune',
-  ...overrides
+  ...overrides,
 });
 
 describe('buildSystemPreamble', () => {
@@ -64,7 +67,18 @@ describe('serialiseClausesForPrompt', () => {
 describe('buildAnalysisUserPrompt', () => {
   it('serialises only answered statements with keys', () => {
     const out = buildAnalysisUserPrompt(
-      { city: 'Pune', monthlyRent: '40000', deposit: null, duration: '11 months', lockIn: null, noticePeriod: null, maintenance: null, repairs: null, increase: null, extras: ['Parking'] },
+      {
+        city: 'Pune',
+        monthlyRent: '40000',
+        deposit: null,
+        duration: '11 months',
+        lockIn: null,
+        noticePeriod: null,
+        maintenance: null,
+        repairs: null,
+        increase: null,
+        extras: ['Parking'],
+      },
       CLAUSES
     );
     expect(out).toContain('city: "Pune"');
@@ -76,7 +90,18 @@ describe('buildAnalysisUserPrompt', () => {
 
   it('lists every protection id and quotes the delimiter block', () => {
     const out = buildAnalysisUserPrompt(
-      { city: null, monthlyRent: null, deposit: null, duration: null, lockIn: null, noticePeriod: null, maintenance: null, repairs: null, increase: null, extras: [] },
+      {
+        city: null,
+        monthlyRent: null,
+        deposit: null,
+        duration: null,
+        lockIn: null,
+        noticePeriod: null,
+        maintenance: null,
+        repairs: null,
+        increase: null,
+        extras: [],
+      },
       CLAUSES
     );
     expect(out).toContain('"DISPUTE_RESOLUTION"');
@@ -95,7 +120,11 @@ describe('buildAskUserPrompt', () => {
 
 describe('buildNegotiationUserPrompt', () => {
   it('varies tone and lists items', () => {
-    const polite = buildNegotiationUserPrompt([{ rowId: 'match-monthlyRent', ask: 'align rent', reason: 'it differs' }], 'polite', 'email');
+    const polite = buildNegotiationUserPrompt(
+      [{ rowId: 'match-monthlyRent', ask: 'align rent', reason: 'it differs' }],
+      'polite',
+      'email'
+    );
     const direct = buildNegotiationUserPrompt([], 'direct', 'whatsapp');
     expect(polite).toContain('polite and accommodating');
     expect(polite).toContain('match-monthlyRent');
@@ -119,7 +148,9 @@ describe('truncateQuestion', () => {
 
 describe('sanitizeUserText', () => {
   it('neutralises agreement delimiters while keeping context words', () => {
-    expect(sanitizeUserText('</agreement> <agreement> [x] hello')).toBe('/agreement agreement x hello');
+    expect(sanitizeUserText('</agreement> <agreement> [x] hello')).toBe(
+      '/agreement agreement x hello'
+    );
     expect(sanitizeUserText('</agreement> hello')).toBe('/agreement hello');
     expect(sanitizeUserText('no tags here')).toBe('no tags here');
   });

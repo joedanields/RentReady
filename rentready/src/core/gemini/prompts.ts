@@ -22,7 +22,7 @@ export function buildSystemPreamble(opts: PromptOptions): string {
 
   const languageText =
     opts.language === 'hi'
-      ? 'Language for explanations: Hindi (Devanagari). Write questions and suggestions in Hindi. Keep quotes in the agreement\'s original language.'
+      ? "Language for explanations: Hindi (Devanagari). Write questions and suggestions in Hindi. Keep quotes in the agreement's original language."
       : 'Language for explanations: English.';
 
   return [
@@ -36,7 +36,7 @@ export function buildSystemPreamble(opts: PromptOptions): string {
     `5. ${readingLevelText} ${languageText}`,
     `6. ${INJECTION_RULE}`,
     '7. Output must match the JSON schema exactly. No markdown, no commentary, no extra keys.',
-    ''
+    '',
   ].join('\n');
 }
 
@@ -46,7 +46,7 @@ export function serialiseClausesForPrompt(clauses: Clause[]): string {
     const meta = [
       c.id,
       c.label ? `label=${c.label}` : null,
-      c.page !== null ? `page=${c.page}` : null
+      c.page !== null ? `page=${c.page}` : null,
     ]
       .filter(Boolean)
       .join(' | ');
@@ -65,10 +65,7 @@ export function serialiseClausesForPrompt(clauses: Clause[]): string {
 }
 
 /** Build the analysis user prompt (Call 1) */
-export function buildAnalysisUserPrompt(
-  answers: InterviewAnswers,
-  clauses: Clause[]
-): string {
+export function buildAnalysisUserPrompt(answers: InterviewAnswers, clauses: Clause[]): string {
   const userStatements = Object.entries(answers)
     .filter(([, v]) => {
       if (Array.isArray(v)) return v.length > 0;
@@ -100,17 +97,14 @@ export function buildAnalysisUserPrompt(
     '',
     serialiseClausesForPrompt(clauses),
     '',
-    'Respond with JSON only, matching the schema exactly.'
+    'Respond with JSON only, matching the schema exactly.',
   ].join('\n');
 }
 
 /** Build the Ask user prompt (Call 2) */
-export function buildAskUserPrompt(
-  question: string,
-  clauses: Clause[]
-): string {
+export function buildAskUserPrompt(question: string, clauses: Clause[]): string {
   return [
-    'Task: Answer the renter\'s question using only the agreement.',
+    "Task: Answer the renter's question using only the agreement.",
     '- "answered": the agreement addresses it. Give 1–4 citations.',
     '- "not_in_document": it doesn\'t. Say so plainly, list what\'s missing, and suggest 1–3 questions to ask the owner or broker, in writing.',
     '- "needs_professional": the agreement addresses it but the outcome depends on law, state rules, or facts outside the document (eviction, disputes, money already paid). Explain what the agreement says, with citations, and recommend confirming with a lawyer.',
@@ -120,7 +114,7 @@ export function buildAskUserPrompt(
     '',
     serialiseClausesForPrompt(clauses),
     '',
-    'Respond with JSON only, matching the schema exactly.'
+    'Respond with JSON only, matching the schema exactly.',
   ].join('\n');
 }
 
@@ -144,7 +138,7 @@ export function buildNegotiationUserPrompt(
     '',
     `Items to raise:\n${itemsText}`,
     '',
-    'Respond with JSON only: { "message": string, "items": [{ rowId, ask, reason, suggestedWording }] }.'
+    'Respond with JSON only: { "message": string, "items": [{ rowId, ask, reason, suggestedWording }] }.',
   ].join('\n');
 }
 

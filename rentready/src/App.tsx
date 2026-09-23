@@ -27,7 +27,7 @@ const SCREENS = [
   'settings',
   'help',
   'privacy',
-  'disclaimer'
+  'disclaimer',
 ] as const;
 type Screen = (typeof SCREENS)[number];
 
@@ -39,7 +39,8 @@ function parseHash(): Screen {
 
 export function App() {
   const { state, dispatch } = useApp();
-  const [screen, setScreen] = useState<Screen>('home');
+  // Honour the hash on first load too, so a refresh or deep link keeps the user where they were.
+  const [screen, setScreen] = useState<Screen>(parseHash);
   const demo = useDemoMode();
 
   useEffect(() => {
@@ -82,7 +83,7 @@ export function App() {
               </span>
             )}
           </button>
-          <nav aria-label="Primary" className="flex items-center gap-2">
+          <nav aria-label={t('navPrimary')} className="flex items-center gap-2">
             <ForgetKeyButton />
             <button
               type="button"
@@ -104,55 +105,59 @@ export function App() {
               dispatch({
                 type: 'SET_INTERVIEW_ANSWER',
                 key: 'city',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.city ?? ''
+                value: SAMPLE_DEMO_INTERVIEW_INPUT.city ?? '',
               });
               dispatch({
                 type: 'SET_INTERVIEW_ANSWER',
                 key: 'monthlyRent',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.monthlyRent ?? ''
+                value: SAMPLE_DEMO_INTERVIEW_INPUT.monthlyRent ?? '',
               });
               dispatch({
                 type: 'SET_INTERVIEW_ANSWER',
                 key: 'deposit',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.deposit ?? ''
+                value: SAMPLE_DEMO_INTERVIEW_INPUT.deposit ?? '',
               });
               dispatch({
                 type: 'SET_INTERVIEW_ANSWER',
                 key: 'duration',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.duration ?? ''
+                value: SAMPLE_DEMO_INTERVIEW_INPUT.duration ?? '',
               });
               dispatch({
                 type: 'SET_INTERVIEW_ANSWER',
                 key: 'lockIn',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.lockIn ?? ''
+                value: SAMPLE_DEMO_INTERVIEW_INPUT.lockIn ?? '',
               });
               dispatch({
                 type: 'SET_INTERVIEW_ANSWER',
                 key: 'noticePeriod',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.noticePeriod ?? ''
+                value: SAMPLE_DEMO_INTERVIEW_INPUT.noticePeriod ?? '',
               });
               dispatch({
                 type: 'SET_INTERVIEW_ANSWER',
                 key: 'maintenance',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.maintenance ?? ''
+                value: SAMPLE_DEMO_INTERVIEW_INPUT.maintenance ?? '',
               });
               dispatch({
                 type: 'SET_INTERVIEW_ANSWER',
                 key: 'repairs',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.repairs ?? ''
+                value: SAMPLE_DEMO_INTERVIEW_INPUT.repairs ?? '',
               });
               dispatch({
                 type: 'SET_INTERVIEW_ANSWER',
                 key: 'increase',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.increase ?? ''
+                value: SAMPLE_DEMO_INTERVIEW_INPUT.increase ?? '',
               });
               go('upload');
             }}
           />
         )}
-        {screen === 'interview' && <Interview onDone={() => go('upload')} onBack={() => go('home')} />}
+        {screen === 'interview' && (
+          <Interview onDone={() => go('upload')} onBack={() => go('home')} />
+        )}
         {screen === 'upload' && <Upload onAnalysed={() => go('report')} />}
-        {screen === 'report' && <Report onNegotiate={() => go('negotiate')} onMoveIn={() => go('movein')} />}
+        {screen === 'report' && (
+          <Report onNegotiate={() => go('negotiate')} onMoveIn={() => go('movein')} />
+        )}
         {screen === 'negotiate' && <Negotiate onBack={() => go('report')} />}
         {screen === 'movein' && <MoveIn onBack={() => go('report')} />}
         {screen === 'settings' && <Settings onReset={() => go('home')} />}
@@ -164,14 +169,26 @@ export function App() {
       <footer className="border-t border-border bg-white">
         <div className="mx-auto max-w-3xl px-4 py-4 text-center text-sm text-muted">
           <p className="mb-2">{t('infoNotLegalAdvice')}</p>
-          <nav aria-label="Footer" className="flex justify-center gap-4">
-            <button type="button" onClick={() => go('help')} className="min-h-[44px] text-primary hover:underline">
+          <nav aria-label={t('navFooter')} className="flex justify-center gap-4">
+            <button
+              type="button"
+              onClick={() => go('help')}
+              className="min-h-[44px] text-primary hover:underline"
+            >
               {t('howThisWorks')}
             </button>
-            <button type="button" onClick={() => go('privacy')} className="min-h-[44px] text-primary hover:underline">
+            <button
+              type="button"
+              onClick={() => go('privacy')}
+              className="min-h-[44px] text-primary hover:underline"
+            >
               {t('privacy')}
             </button>
-            <button type="button" onClick={() => go('disclaimer')} className="min-h-[44px] text-primary hover:underline">
+            <button
+              type="button"
+              onClick={() => go('disclaimer')}
+              className="min-h-[44px] text-primary hover:underline"
+            >
               {t('disclaimer')}
             </button>
           </nav>

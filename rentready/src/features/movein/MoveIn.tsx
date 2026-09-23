@@ -4,7 +4,12 @@ import { useEffect } from 'react';
 import { useApp } from '../../state/AppProvider';
 import { t } from '../../i18n';
 import { Button } from '../../components/Button';
-import { buildMoveInKit, exportMoveInKitAsMarkdown, METER_TYPES, PHOTO_GUIDE } from '../../core/movein/checklist';
+import {
+  buildMoveInKit,
+  exportMoveInKitAsMarkdown,
+  METER_TYPES,
+  PHOTO_GUIDE,
+} from '../../core/movein/checklist';
 import { normaliseAnswers } from '../../core/interview/normalise';
 
 export function MoveIn({ onBack }: { onBack: () => void }) {
@@ -13,7 +18,10 @@ export function MoveIn({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     if (!state.movein.kit) {
-      const kit = buildMoveInKit(normaliseAnswers(state.interview.answers), analysis?.matches ?? []);
+      const kit = buildMoveInKit(
+        normaliseAnswers(state.interview.answers),
+        analysis?.matches ?? []
+      );
       dispatch({ type: 'SET_MOVEIN_KIT', kit });
     }
   }, [state.movein.kit, state.interview.answers, analysis?.matches, dispatch]);
@@ -56,9 +64,7 @@ export function MoveIn({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className="rounded-xl border border-border p-4">
-        <div className="text-sm text-muted">
-          {t('progress', { current: done, total })}
-        </div>
+        <div className="text-sm text-muted">{t('progress', { current: done, total })}</div>
         <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
           <div
             className="h-2 rounded-full bg-primary transition-all"
@@ -103,7 +109,10 @@ export function MoveIn({ onBack }: { onBack: () => void }) {
         </h2>
         <div className="grid gap-2 sm:grid-cols-3">
           {METER_TYPES.map(meter => (
-            <label key={meter.id} className="flex flex-col gap-1 rounded-lg border border-border p-3 text-sm">
+            <label
+              key={meter.id}
+              className="flex flex-col gap-1 rounded-lg border border-border p-3 text-sm"
+            >
               <span className="text-muted">{meter.label}</span>
               <input
                 type="text"
@@ -113,7 +122,10 @@ export function MoveIn({ onBack }: { onBack: () => void }) {
                 onChange={e =>
                   dispatch({
                     type: 'SET_MOVEIN_KIT',
-                    kit: { ...kit, meterReadings: { ...kit.meterReadings, [meter.id]: e.target.value } }
+                    kit: {
+                      ...kit,
+                      meterReadings: { ...kit.meterReadings, [meter.id]: e.target.value },
+                    },
                   })
                 }
               />

@@ -1,7 +1,5 @@
 /** Mark — highlight a quoted substring by splitting into React nodes (never dangerouslySetInnerHTML) */
 
-
-
 export function Mark({ text, highlight }: { text: string; highlight: string }) {
   if (!highlight) return <>{text}</>;
 

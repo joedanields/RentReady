@@ -1,15 +1,29 @@
 import { describe, it, expect } from 'vitest';
-import { INTERVIEW_QUESTIONS, INITIAL_INTERVIEW_ANSWERS, type InterviewQuestion } from './questions';
+import {
+  INTERVIEW_QUESTIONS,
+  INITIAL_INTERVIEW_ANSWERS,
+  type InterviewQuestion,
+} from './questions';
 import type { InterviewAnswers } from '../types';
 
-const byKey = (key: string): InterviewQuestion =>
-  INTERVIEW_QUESTIONS.find(q => q.key === key)!;
+const byKey = (key: string): InterviewQuestion => INTERVIEW_QUESTIONS.find(q => q.key === key)!;
 
 describe('INTERVIEW_QUESTIONS', () => {
   it('covers every answer key exactly once in interview order', () => {
     const keys = INTERVIEW_QUESTIONS.map(q => q.key);
     expect(new Set(keys).size).toBe(keys.length);
-    const allKeys: Array<keyof InterviewAnswers> = ['city', 'monthlyRent', 'deposit', 'duration', 'lockIn', 'noticePeriod', 'maintenance', 'repairs', 'increase', 'extras'];
+    const allKeys: Array<keyof InterviewAnswers> = [
+      'city',
+      'monthlyRent',
+      'deposit',
+      'duration',
+      'lockIn',
+      'noticePeriod',
+      'maintenance',
+      'repairs',
+      'increase',
+      'extras',
+    ];
     expect(keys).toEqual(allKeys);
     expect(keys[0]).toBe('city');
   });
@@ -62,7 +76,7 @@ describe('INITIAL_INTERVIEW_ANSWERS', () => {
       maintenance: null,
       repairs: null,
       increase: null,
-      extras: []
+      extras: [],
     });
   });
 });

@@ -22,7 +22,7 @@ export const LIMITS = {
   /** Max output tokens for analysis call */
   MAX_ANALYSIS_TOKENS: 8192,
   /** Max output tokens for ask/negotiation calls */
-  MAX_SMALL_CALL_TOKENS: 1536
+  MAX_SMALL_CALL_TOKENS: 1536,
 } as const;
 
 export type LimitKey = keyof typeof LIMITS;

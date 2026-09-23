@@ -6,7 +6,7 @@ import type {
   GapRow,
   InterviewAnswers,
   MatchRow,
-  VerifiedQuote
+  VerifiedQuote,
 } from './types.js';
 import { validateModelAnalysis } from './schemas.js';
 import { normaliseAnswers } from './interview/normalise.js';
@@ -54,7 +54,12 @@ export function verifyFindingQuotes(
 /** Demote any gap whose evidence didn't verify to 'unclear' */
 export function demoteGapEvidence(gaps: GapRow[]): GapRow[] {
   return gaps.map(g => {
-    if (g.state === 'present' && g.evidence && g.evidence.status !== 'verified' && g.evidence.status !== 'fuzzy') {
+    if (
+      g.state === 'present' &&
+      g.evidence &&
+      g.evidence.status !== 'verified' &&
+      g.evidence.status !== 'fuzzy'
+    ) {
       return { ...g, state: 'unclear' };
     }
     return g;
@@ -106,7 +111,7 @@ export function analyseDocument(input: AnalysisInput): AnalysisResult {
             state: f.state,
             summary: f.summary ?? null,
             clauseId: f.clauseId,
-            quote: f.quote
+            quote: f.quote,
           })),
       verified
     )
@@ -119,7 +124,14 @@ export function analyseDocument(input: AnalysisInput): AnalysisResult {
     matches,
     gaps,
     interview: normalised,
-    derived: { depositMonths: null, monthlyRent: null, lockInDays: null, noticeTenantDays: null, noticeLandlordDays: null, durationDays: null }
+    derived: {
+      depositMonths: null,
+      monthlyRent: null,
+      lockInDays: null,
+      noticeTenantDays: null,
+      noticeLandlordDays: null,
+      durationDays: null,
+    },
   };
   const derived = buildDerived(ctx);
   const rules = runRules({ ...ctx, derived });
@@ -140,7 +152,7 @@ const PROTECTION_PLACEHOLDER: Array<{
   state: 'unclear' as const,
   summary: null,
   clauseId: null,
-  quote: null
+  quote: null,
 }));
 
 /** Local-only mode result (no AI): all gaps unclear, no matches beyond not_covered, rules offline */

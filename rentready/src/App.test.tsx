@@ -45,8 +45,12 @@ describe('App shell', () => {
   it('keeps the footer disclaimer when navigating to another screen', async () => {
     renderApp();
     const user = userEvent.setup();
-    await user.click(within(screen.getByRole('contentinfo')).getByRole('button', { name: t('privacy') }));
-    expect(within(screen.getByRole('contentinfo')).getByText(t('infoNotLegalAdvice'))).toBeInTheDocument();
+    await user.click(
+      within(screen.getByRole('contentinfo')).getByRole('button', { name: t('privacy') })
+    );
+    expect(
+      within(screen.getByRole('contentinfo')).getByText(t('infoNotLegalAdvice'))
+    ).toBeInTheDocument();
   });
 
   it('keeps key entry out of the header (it lives on Upload and Settings)', () => {
@@ -55,6 +59,14 @@ describe('App shell', () => {
     expect(header.querySelector('input')).toBeNull();
     // With no key set there is nothing to forget, so the header control is absent too.
     expect(within(header).queryByRole('button', { name: t('forgetKey') })).toBeNull();
+  });
+
+  it('opens the screen named in the hash on first load (refresh or deep link)', () => {
+    window.location.hash = '#/interview';
+    renderApp();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Which city is the place in?'
+    );
   });
 
   it('has no axe violations on Home', async () => {

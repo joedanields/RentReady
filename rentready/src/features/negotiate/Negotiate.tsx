@@ -29,7 +29,7 @@ export function Negotiate({ onBack }: { onBack: () => void }) {
         .map(m => ({ id: `match-${m.key}`, label: mNote(m), selected: true })),
       ...analysis.gaps
         .filter(g => g.state === 'absent')
-        .map(g => ({ id: `gap-${g.id}`, label: g.title, selected: true }))
+        .map(g => ({ id: `gap-${g.id}`, label: g.title, selected: true })),
     ];
   }, [analysis]);
 
@@ -46,7 +46,7 @@ export function Negotiate({ onBack }: { onBack: () => void }) {
       gaps: analysis.gaps,
       selectedRowIds: state.negotiation.selectedRows,
       tone: state.negotiation.tone,
-      channel: state.negotiation.channel
+      channel: state.negotiation.channel,
     });
     dispatch({ type: 'SET_NEGOTIATION_RESULT', result });
   };
@@ -56,7 +56,7 @@ export function Negotiate({ onBack }: { onBack: () => void }) {
     state.negotiation.tone,
     state.negotiation.channel,
     analysis,
-    dispatch
+    dispatch,
   ]);
 
   if (!analysis) {
@@ -82,7 +82,7 @@ export function Negotiate({ onBack }: { onBack: () => void }) {
       gaps: analysis.gaps,
       selectedRowIds: state.negotiation.selectedRows,
       tone: state.negotiation.tone,
-      channel: state.negotiation.channel
+      channel: state.negotiation.channel,
     });
     if (demo.active) {
       // Demo: keep local message
@@ -103,7 +103,7 @@ export function Negotiate({ onBack }: { onBack: () => void }) {
         system: buildSystemPreamble({
           language: state.preferences.language,
           readingLevel: state.preferences.readingLevel,
-          city: state.interview.answers.city
+          city: state.interview.answers.city,
         }),
         userPrompt: buildNegotiationUserPrompt(
           items.map(i => ({ rowId: i.rowId, ask: i.ask, reason: i.reason })),
@@ -112,12 +112,12 @@ export function Negotiate({ onBack }: { onBack: () => void }) {
         ),
         responseSchema: NEGOTIATION_SCHEMA,
         temperature: 0.4,
-        maxOutputTokens: 2048
+        maxOutputTokens: 2048,
       });
       const parsed = validateModelNegotiation(JSON.parse(repairJson(text)));
       dispatch({
         type: 'SET_NEGOTIATION_RESULT',
-        result: { message: parsed.message, items: parsed.items }
+        result: { message: parsed.message, items: parsed.items },
       });
       dispatch({ type: 'INCREMENT_BUDGET' });
     } catch (e) {
@@ -176,7 +176,9 @@ export function Negotiate({ onBack }: { onBack: () => void }) {
                 aria-pressed={state.negotiation.tone === tone}
                 onClick={() => dispatch({ type: 'SET_NEGOTIATION_TONE', tone })}
                 className={`min-h-[44px] rounded-lg border px-4 ${
-                  state.negotiation.tone === tone ? 'border-primary bg-primary text-white' : 'border-border'
+                  state.negotiation.tone === tone
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-border'
                 }`}
               >
                 {tone === 'polite' ? t('tonePolite') : t('toneDirect')}
@@ -194,7 +196,9 @@ export function Negotiate({ onBack }: { onBack: () => void }) {
                 aria-pressed={state.negotiation.channel === channel}
                 onClick={() => dispatch({ type: 'SET_NEGOTIATION_CHANNEL', channel })}
                 className={`min-h-[44px] rounded-lg border px-4 ${
-                  state.negotiation.channel === channel ? 'border-primary bg-primary text-white' : 'border-border'
+                  state.negotiation.channel === channel
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-border'
                 }`}
               >
                 {channel === 'whatsapp' ? t('channelWhatsApp') : t('channelEmail')}

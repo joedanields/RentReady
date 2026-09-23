@@ -26,11 +26,11 @@ Legend: ⬜ todo · 🟨 doing · ✅ done · Est = focused hours
 **Done when:** `npm run test:coverage` shows 100% on verify, rules and compare.
 
 ## Phase 2 – Interview UI (Day 3) · Est 6h
-- ⬜ `AppProvider` state + reducer + `RESET_ALL`
-- ⬜ Interview screens, progress, skip, back, live normalised echo
-- ⬜ Answer summary with inline edit
-- ⬜ i18n scaffolding (`t()`, `en`) wired from the start
-- ⬜ Component tests + axe on each step
+- ✅ `AppProvider` state + reducer + `RESET_ALL`
+- ✅ Interview screens, progress, skip, back, live normalised echo
+- ✅ Answer summary with inline edit
+- ✅ i18n scaffolding (`t()`, `en`) wired from the start
+- ✅ Component tests + axe on each step
 **Done when:** full interview is keyboard-only navigable and covered by tests.
 
 ## Phase 3 – Document intake (Day 4) · Est 6h
@@ -114,3 +114,10 @@ Done: Phase 1 domain core (verify/rules/interview at 100%). Phase 0 audit: the s
 Blocked: live deploy needs the owner's Cloudflare account and a push (HUMAN_TASKS.md).
 Decisions: #5 (reworded), #17–21.
 Next: Phase 2 — audit the existing AppProvider/Interview against INTERVIEW_SPEC, add component tests + axe per step.
+
+### Day 1 (cont.) – 2026-09-23 — Phase 2
+Done: Interview rewritten to spec — real radios/checkboxes in fieldset/legend, h1 focus per step, Back to the previous question (was Home), editable earlier answers (inputs were locked to the stored value), Skip clears, "Not sure" = skip, follow-ups for lock-in months / increase % / "other" durations, live money echo incl. deposit↔months, errors linked with aria-describedby, number-key shortcuts, "Skip all" on step 1, summary with per-answer Edit that returns to the summary. State: demo flag in the reducer, prefs persisted and Zod-validated, "Clear everything" wipes storage, language sync before render, hash honoured on first load. Core fixes: "two months" deposit was read as ₹2; city and not-sure answers no longer become match rows. Tests: 324 unit/component (axe on every step), 14 e2e incl. a keyboard-only interview run and 320 px checks on every step.
+Blocked: none (deploy still waiting on HUMAN_TASKS.md).
+Decisions: #22–29.
+Next: Phase 3 — audit the existing parsers/segmenter/upload against ARCHITECTURE §5 and SECURITY file guards; synthetic sample agreement + "Use the sample".
+

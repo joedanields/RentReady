@@ -1,6 +1,5 @@
 /** Home screen — trust lines, primary CTA, demo CTA, disclaimer */
 
-
 import { t } from '../../i18n';
 import { Button } from '../../components/Button';
 import { useApp } from '../../state/AppProvider';
@@ -39,12 +38,9 @@ export function Home({ onStart, onDemo }: { onStart: () => void; onDemo: () => v
       </div>
 
       {!firstRun && (
-        <p className="text-sm text-muted">
-          {t('progress', { current: state.interview.currentStep, total: '10' })} —{' '}
-          <Button variant="ghost" size="sm" onClick={onStart}>
-            {t('next')}
-          </Button>
-        </p>
+        <Button variant="ghost" onClick={onStart} className="self-start">
+          {t('summaryTitle')}
+        </Button>
       )}
     </section>
   );

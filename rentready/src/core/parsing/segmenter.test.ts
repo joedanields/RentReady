@@ -52,7 +52,7 @@ describe('segmentClauses', () => {
       'The monthly rent is Rs. 40,000 payable in advance.',
       '3. Deposit',
       'The security deposit is Rs. 80,000, refundable on vacating.',
-      ''
+      '',
     ].join('\n');
 
     const clauses = segmentClauses(text);
@@ -66,7 +66,7 @@ describe('segmentClauses', () => {
       '1. Term',
       'This agreement runs for eleven months commencing today.',
       '2. Rent',
-      'Rent continues on page two for the second clause body.'
+      'Rent continues on page two for the second clause body.',
     ].join('\n');
     const page2 = ['3. Deposit', 'The deposit will be returned within fifteen days.'].join('\n');
 
@@ -81,7 +81,7 @@ describe('segmentClauses', () => {
       'TERM',
       'Either party may end the agreement by giving one month written notice.',
       'RENT',
-      'Possession shall be handed over on the start date.'
+      'Possession shall be handed over on the start date.',
     ].join('\n');
     const clauses = segmentClauses(text);
     const headings = clauses.filter(c => c.heading).map(c => c.heading);
@@ -101,7 +101,8 @@ describe('segmentClauses', () => {
   });
 
   it('splits very long clauses at sentence boundaries', () => {
-    const longSentence = 'The tenant shall keep the premises in good condition and shall report repairs promptly. ';
+    const longSentence =
+      'The tenant shall keep the premises in good condition and shall report repairs promptly. ';
     const text = `Clause 4. ${longSentence.repeat(60)}`;
     const clauses = segmentClauses(text);
     const totalChars = clauses.reduce((n, c) => n + c.text.length, 0);
@@ -113,7 +114,17 @@ describe('segmentClauses', () => {
 
 describe('serialiseClauses', () => {
   it('serialises with delimiters and sanitises angle brackets', () => {
-    const clauses = [{ id: 'c001', label: '3', heading: null, text: 'Deposit <careful>', page: 1, pageEnd: null, order: 1 }];
+    const clauses = [
+      {
+        id: 'c001',
+        label: '3',
+        heading: null,
+        text: 'Deposit <careful>',
+        page: 1,
+        pageEnd: null,
+        order: 1,
+      },
+    ];
     const out = serialiseClauses(clauses);
     expect(out).toContain('[[c001 | label=3 | page=1]]');
     expect(out).not.toContain('<careful>');

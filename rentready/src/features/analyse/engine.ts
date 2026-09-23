@@ -6,16 +6,11 @@ import { generateContent, repairJson } from '../../core/gemini/client';
 import {
   buildSystemPreamble,
   buildAnalysisUserPrompt,
-  serialiseClausesForPrompt
+  serialiseClausesForPrompt,
 } from '../../core/gemini/prompts';
 import { ANALYSIS_SCHEMA, DEFAULT_MODEL } from '../../core/gemini/responseSchemas';
 import { createAppError } from '../../core/gemini/errors';
-import type {
-  Clause,
-  InterviewAnswers,
-  AnalysisResult,
-  Preferences
-} from '../../core/types';
+import type { Clause, InterviewAnswers, AnalysisResult, Preferences } from '../../core/types';
 import { SAMPLE_PAGES, SAMPLE_ANALYSIS_RESPONSE } from '../../sample/sampleData';
 
 export interface ParsedDocument {
@@ -34,15 +29,12 @@ export function parseSampleAgreement(): ParsedDocument {
   return {
     clauses,
     rawText: SAMPLE_PAGES.join('\n\n'),
-    pageCount: SAMPLE_PAGES.length
+    pageCount: SAMPLE_PAGES.length,
   };
 }
 
 /** Run local-only analysis (no AI). Phase 4 core behaviour. */
-export function analyseLocalOnly(
-  answers: InterviewAnswers,
-  clauses: Clause[]
-): AnalysisResult {
+export function analyseLocalOnly(answers: InterviewAnswers, clauses: Clause[]): AnalysisResult {
   return analyseDocument({ answers, clauses, localOnly: true });
 }
 
@@ -72,7 +64,7 @@ export async function runAnalysis(opts: AnalyseOptions): Promise<AnalysisResult>
   const promptOpts = {
     language: preferences.language,
     readingLevel: preferences.readingLevel,
-    city: answers.city
+    city: answers.city,
   };
 
   // Demo mode: recorded response via the same pipeline
@@ -83,7 +75,7 @@ export async function runAnalysis(opts: AnalyseOptions): Promise<AnalysisResult>
     const result = analyseDocument({
       answers,
       clauses,
-      modelResponse: SAMPLE_ANALYSIS_RESPONSE
+      modelResponse: SAMPLE_ANALYSIS_RESPONSE,
     });
     onStage?.('rules');
     await new Promise(r => setTimeout(r, 400));
@@ -102,7 +94,7 @@ export async function runAnalysis(opts: AnalyseOptions): Promise<AnalysisResult>
     userPrompt,
     responseSchema: ANALYSIS_SCHEMA,
     temperature: 0.2,
-    maxOutputTokens: 8192
+    maxOutputTokens: 8192,
   });
 
   if (!text.trim()) {
@@ -128,7 +120,5 @@ export function getDefaultModel(): string {
 }
 
 export function serialiseAgreementForExport(rawText: string): string {
-  return serialiseClausesForPrompt(
-    segmentClauses(rawText).slice(0, 1)
-  );
+  return serialiseClausesForPrompt(segmentClauses(rawText).slice(0, 1));
 }

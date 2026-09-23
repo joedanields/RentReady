@@ -39,7 +39,8 @@ function rebuildLines(items: TextItem[]): PageLine[] {
   for (const item of items) {
     const y = item.transform?.[5] ?? 0;
     if (started && current && Math.abs(y - currentY) > 5) flush(currentY);
-    current += (current && !item.str.startsWith(' ') && !current.endsWith(' ') ? ' ' : '') + item.str;
+    current +=
+      (current && !item.str.startsWith(' ') && !current.endsWith(' ') ? ' ' : '') + item.str;
     if (item.hasEOL) flush(y);
     started = true;
     currentY = y;
@@ -83,7 +84,7 @@ export async function parsePdf(
   return {
     clauses,
     rawText: pageTexts.map((t, i) => `\n--- PAGE ${i + 1} ---\n` + t).join(''),
-    pageCount: pdf.numPages
+    pageCount: pdf.numPages,
   };
 }
 
@@ -94,7 +95,8 @@ export function isPdfFile(file: File): boolean {
 /** Magic-byte sniffing for PDF (and DOCX/zip) */
 export function sniffMagicBytes(bytes: Uint8Array): 'pdf' | 'zip' | 'unknown' {
   if (bytes.length < 4) return 'unknown';
-  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) return 'pdf';
+  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46)
+    return 'pdf';
   if (bytes[0] === 0x50 && bytes[1] === 0x4b) return 'zip';
   return 'unknown';
 }

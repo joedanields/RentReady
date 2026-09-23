@@ -29,7 +29,7 @@ export function processAskResponse(input: AskInput): AskResult {
         answer: "I couldn't find support for that in your agreement.",
         citations: [],
         missingInfo: validated.missingInfo,
-        suggestedQuestions: validated.suggestedQuestions
+        suggestedQuestions: validated.suggestedQuestions,
       };
     }
     return { ...validated, citations: verifiedCitations };
@@ -43,9 +43,9 @@ export function localAskResult(): AskResult {
   return {
     status: 'not_in_document',
     answer:
-      "In Demo mode / offline you can still ask questions, but the answer is only available when the analysis has run.",
+      'In Demo mode / offline you can still ask questions, but the answer is only available when the analysis has run.',
     citations: [],
     missingInfo: [],
-    suggestedQuestions: []
+    suggestedQuestions: [],
   };
 }
