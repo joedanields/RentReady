@@ -47,12 +47,12 @@ Legend: ⬜ todo · 🟨 doing · ✅ done · Est = focused hours
 **Done when:** the app is genuinely useful offline, before any AI exists.
 
 ## Phase 5 – Gemini layer (Day 6–7) · Est 10h
-- ⬜ `core/gemini/client.ts` (fetch, schema, timeout, retries, typed errors, `redact()`)
-- ⬜ Key panel: entry, masking, remember-for-tab opt-in, forget, budget counter
-- ⬜ Prompts + response schemas from `AI_PIPELINE.md`
-- ⬜ Wire analysis: model findings → Zod → verification → `compare.ts` → report
-- ⬜ Record real responses into `src/sample/` for Demo mode; `?demo=1` route
-- ⬜ Client tests with mocked fetch, including key-never-leaks assertions
+- ✅ `core/gemini/client.ts` (fetch, schema, timeout, retries, typed errors, `redact()`)
+- ✅ Key panel: entry, masking, remember-for-tab opt-in, forget, budget counter
+- ✅ Prompts + response schemas from `AI_PIPELINE.md`
+- ✅ Wire analysis: model findings → Zod → verification → `compare.ts` → report
+- 🟨 Record real responses into `src/sample/` for Demo mode; `?demo=1` route — `?demo=1` done; fixtures hand-authored and verification-tested, real recording needs a key (HUMAN_TASKS.md §3)
+- ✅ Client tests with mocked fetch, including key-never-leaks assertions
 **Done when:** sample agreement produces correct `differs` / `not_covered` rows with verified quotes, and Demo mode needs no key.
 
 ## Phase 6 – Ask (Day 8) · Est 4h
@@ -132,3 +132,7 @@ Done: Offline report. Rule engine reworked to read the agreement (extractors) in
 Blocked: none (deploy still waiting on HUMAN_TASKS.md).
 Decisions: #35–41.
 Next: Phase 5 — Gemini layer: audit client/prompts/schemas against AI_PIPELINE, key panel (remember-for-tab), budget, translated AI errors, key-never-leaks tests.
+
+### Day 1 (cont.) – 2026-09-23 — Phase 5
+Done: Gemini layer hardened — typed, translated AI errors with details kept apart; quota vs rate limit; real TIMEOUT; Zod failures → invalid output; offline/timeout falls back to the local report. Key panel rebuilt (explicit save, masking, Show, Forget, opt-in tab memory, budget). Prompts sanitise user text. Tests: engine routing + key-never-leaks unit tests; e2e with Gemini mocked at the network layer proving the key is only in the request header, never in page text, URL or storage.
+Next: Phase 6 — Ask (one day left: prioritising Must items 6–7, then submission hardening).

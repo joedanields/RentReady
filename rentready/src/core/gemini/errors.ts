@@ -81,14 +81,16 @@ export const ERROR_MESSAGES: Record<ErrorCode, { message: string; retryable: boo
   UNKNOWN: { message: 'Something went wrong. Please try again.', retryable: true },
 };
 
+/**
+ * Builds a typed error. `details` (an HTTP body, a fetch message) is redacted and kept apart
+ * from the user-facing message: the UI shows the translated message for `code`, never raw
+ * provider output, which may echo request data.
+ */
 export function createAppError(code: ErrorCode, details?: string): AppError {
   const { message, retryable } = ERROR_MESSAGES[code];
-  const extra = details ? redact(details) : '';
-  return {
-    code,
-    message: extra ? `${message} ${extra}` : message,
-    retryable,
-  };
+  return details
+    ? { code, message, retryable, details: redact(details) }
+    : { code, message, retryable };
 }
 
 /** Post-process an error from a fetch call to a typed AppError */
@@ -99,7 +101,8 @@ export function mapHttpError(status: number, body: string): AppError {
     case 403:
       return createAppError('KEY_REJECTED', body);
     case 429:
-      return createAppError('RATE_LIMITED', body);
+      // Free-tier daily quota and per-minute rate limits share 429; only the body tells them apart.
+      return createAppError(/quota/i.test(body) ? 'QUOTA' : 'RATE_LIMITED', body);
     case 500:
     case 502:
     case 503:

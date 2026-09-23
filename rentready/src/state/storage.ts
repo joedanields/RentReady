@@ -11,6 +11,8 @@ import type { Preferences } from '../core/types';
 const PREFIX = 'rentready:';
 export const PREFS_KEY = `${PREFIX}prefs`;
 export const DEMO_KEY = `${PREFIX}demo`;
+/** Only written when the user ticks "Remember for this tab"; sessionStorage dies with the tab. */
+export const API_KEY_KEY = `${PREFIX}key`;
 
 function safe<T>(fn: () => T, fallback: T): T {
   try {
@@ -67,6 +69,20 @@ export function saveDemoFlag(on: boolean): void {
   safe(() => {
     if (on) window.sessionStorage.setItem(DEMO_KEY, '1');
     else window.sessionStorage.removeItem(DEMO_KEY);
+  }, undefined);
+}
+
+/** The remembered key, if the user opted in and it still looks like a Gemini key. */
+export function loadRememberedKey(): string | null {
+  const raw = safe(() => window.sessionStorage.getItem(API_KEY_KEY), null);
+  return raw && /^AIza[0-9A-Za-z_-]{20,}$/.test(raw) ? raw : null;
+}
+
+/** Writes the key for this tab only when remembering is on; otherwise makes sure it's gone. */
+export function saveRememberedKey(key: string | null, remember: boolean): void {
+  safe(() => {
+    if (key && remember) window.sessionStorage.setItem(API_KEY_KEY, key);
+    else window.sessionStorage.removeItem(API_KEY_KEY);
   }, undefined);
 }
 

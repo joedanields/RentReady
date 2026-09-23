@@ -1,19 +1,25 @@
-/** KeyPanel — BYOK in-memory; masked, redacted from errors, never in DOM exports/URLs */
+/**
+ * Key panel — BYOK per SECURITY.md §2. The key lives in memory; "Remember for this tab" (opt-in)
+ * keeps it in sessionStorage until the tab closes. It is masked once set, shown only on a
+ * deliberate click, and "Forget key" is always one tap away.
+ */
 
-import React, { useState } from 'react';
+import { useId, useState } from 'react';
 import { useApp } from '../../state/AppProvider';
 import { t } from '../../i18n';
 import { isKeyFormatValid } from '../../core/gemini/client';
-import { useDemoMode } from '../analyse/demo';
+import { Button } from '../../components/Button';
 
-/** Clears the key from memory and ends any opt-in tab storage — shared by the header and panel. */
+/** "AIza••••••3f": enough to recognise your key, not enough to use it. */
+export function maskKey(key: string): string {
+  return `${key.slice(0, 4)}••••••${key.slice(-2)}`;
+}
+
 function useForgetKey(): () => void {
   const { dispatch } = useApp();
-  const demo = useDemoMode();
   return () => {
     dispatch({ type: 'SET_KEY', key: null });
     dispatch({ type: 'SET_KEY_REMEMBER', remember: false });
-    demo.disable();
   };
 }
 
@@ -33,115 +39,137 @@ export function ForgetKeyButton() {
   );
 }
 
-export function KeyPanel() {
+export function KeyPanel({ onUseSample }: { onUseSample?: () => void }) {
   const { state, dispatch } = useApp();
-  const demo = useDemoMode();
   const forget = useForgetKey();
+  const id = useId();
   const [input, setInput] = useState('');
   const [show, setShow] = useState(false);
+  const [error, setError] = useState(false);
+  const key = state.key.key;
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const next = e.target.value;
-    setInput(next);
-    // Only trigger when it looks like a complete key
-    if (next.length >= 20 && isKeyFormatValid(next)) {
-      dispatch({ type: 'SET_KEY', key: next });
-    } else if (next.length === 0) {
-      dispatch({ type: 'SET_KEY', key: null });
+  const save = () => {
+    const value = input.trim();
+    if (!isKeyFormatValid(value)) {
+      setError(true);
+      return;
     }
+    dispatch({ type: 'SET_KEY', key: value });
+    setInput('');
+    setShow(false);
+    setError(false);
   };
 
   return (
     <section
-      aria-label={t('keyManagement')}
-      className="rounded-xl border border-border bg-gray-50 p-6"
+      aria-labelledby={`${id}-title`}
+      className="space-y-3 rounded-xl border border-border bg-gray-50 p-4 sm:p-6"
     >
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <h2 className="font-semibold">{t('keyManagement')}</h2>
-        {state.key.key ? (
-          <button
-            type="button"
-            onClick={() => setShow(v => !v)}
-            className="min-h-[44px] text-sm text-primary"
-          >
-            {show ? t('hideKey') : t('showKey')}
-          </button>
-        ) : null}
-      </div>
+      <h2 id={`${id}-title`} className="font-semibold">
+        {t('keyManagement')}
+      </h2>
+      <p className="text-sm text-muted">{t('keyExplanation')}</p>
 
-      <p className="mb-4 text-sm text-muted">{t('keyExplanation')}</p>
-
-      {state.key.key ? (
-        <p className="mb-4 break-all text-sm text-muted" data-testid="key-status">
-          {t('keyMasked')}: {show ? state.key.key : '••••' + state.key.key.slice(-4)}
-        </p>
-      ) : (
-        <p className="mb-4 text-sm text-muted">{t('noKeyYet')}</p>
-      )}
-
-      <div className="flex flex-col gap-3">
-        <div className="flex gap-2">
-          <label htmlFor="api-key" className="sr-only">
-            {t('getKeyLink')}
-          </label>
-          <input
-            id="api-key"
-            type={show ? 'text' : 'password'}
-            autoComplete="off"
-            spellCheck={false}
-            value={input}
-            onChange={onChange}
-            placeholder="AIza••••"
-            className="min-h-[44px] flex-1 rounded-lg border border-border px-3"
-          />
-          {!state.key.key && (
-            <button
-              type="button"
+      {key ? (
+        <div className="space-y-2">
+          <p className="break-all text-sm font-medium" data-testid="key-status">
+            {t('keySaved', { masked: show ? key : maskKey(key) })}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => setShow(v => !v)}
-              className="min-h-[44px] px-2 text-muted"
+              aria-pressed={show}
             >
               {show ? t('hideKey') : t('showKey')}
-            </button>
-          )}
+            </Button>
+            <Button variant="danger" size="sm" onClick={forget}>
+              {t('forgetKey')}
+            </Button>
+          </div>
         </div>
+      ) : (
+        <form
+          onSubmit={e => {
+            e.preventDefault();
+            save();
+          }}
+          className="space-y-2"
+        >
+          <label htmlFor={`${id}-key`} className="block font-medium">
+            {t('keyFieldLabel')}
+          </label>
+          <p id={`${id}-hint`} className="text-sm text-muted">
+            {t('keyFieldHint')}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <input
+              id={`${id}-key`}
+              type={show ? 'text' : 'password'}
+              autoComplete="off"
+              spellCheck={false}
+              value={input}
+              aria-describedby={`${id}-hint${error ? ` ${id}-error` : ''}`}
+              aria-invalid={error ? true : undefined}
+              onChange={e => {
+                setInput(e.target.value);
+                setError(false);
+              }}
+              className="min-h-[44px] min-w-0 flex-1 rounded-lg border border-border bg-surface px-3"
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShow(v => !v)}
+              aria-pressed={show}
+            >
+              {show ? t('hideKey') : t('showKey')}
+            </Button>
+            <Button type="submit" disabled={!input.trim()}>
+              {t('keySave')}
+            </Button>
+          </div>
+          {error && (
+            <p id={`${id}-error`} role="alert" className="text-sm font-medium text-differs">
+              <span aria-hidden="true">⚠ </span>
+              {t('keyInvalid')}
+            </p>
+          )}
+        </form>
+      )}
 
+      <label className="flex min-h-[44px] items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={state.key.remember}
+          onChange={e => dispatch({ type: 'SET_KEY_REMEMBER', remember: e.target.checked })}
+          className="h-5 w-5 accent-primary"
+        />
+        {t('rememberKey')}
+      </label>
+      {state.key.remember && <p className="text-xs text-muted">{t('rememberKeyWarn')}</p>}
+
+      <p className="text-sm">
         <a
           href="https://aistudio.google.com/apikey"
           target="_blank"
           rel="noreferrer"
-          className="text-sm text-primary hover:underline"
+          className="font-medium text-primary underline"
         >
           {t('getKeyLink')}
         </a>
+      </p>
+      <p className="text-xs text-muted">{t('keyDeleteTip')}</p>
+      <p className="text-xs text-muted">
+        {t('budgetCounter', { used: state.budget.used, limit: state.budget.limit })}
+      </p>
 
-        <label className="flex items-center gap-2 text-sm text-muted">
-          <input
-            type="checkbox"
-            checked={state.key.remember}
-            onChange={e => dispatch({ type: 'SET_KEY_REMEMBER', remember: e.target.checked })}
-            className="h-5 w-5"
-          />
-          {t('rememberKey')}
-        </label>
-        {state.key.remember && <p className="text-xs text-muted">{t('rememberKeyWarn')}</p>}
-
-        {!demo.active && (
-          <button
-            type="button"
-            onClick={demo.use}
-            className="min-h-[44px] self-start rounded-lg border border-border px-4 text-sm text-primary"
-          >
-            {t('continueDemo')}
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={forget}
-          className="min-h-[44px] self-start rounded-lg border border-red-300 px-4 text-sm text-red-700"
-        >
-          {t('forgetKey')}
-        </button>
-      </div>
+      {onUseSample && !key && (
+        <Button variant="ghost" size="sm" onClick={onUseSample}>
+          {t('keyUseSample')}
+        </Button>
+      )}
     </section>
   );
 }

@@ -35,7 +35,8 @@ export function processAskResponse(input: AskInput): AskResult {
     return { ...validated, citations: verifiedCitations };
   }
 
-  return { ...validated, citations: verified };
+  // Other statuses keep only citations that actually verified.
+  return { ...validated, citations: verified.filter(v => v.status !== 'unverified') };
 }
 
 /** Local-only ask result for when there's no AI */

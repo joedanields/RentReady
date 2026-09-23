@@ -17,6 +17,8 @@ import {
   clearAppStorage,
   loadDemoFlag,
   loadPrefs,
+  loadRememberedKey,
+  saveRememberedKey,
   readUrlParams,
   saveDemoFlag,
   savePrefs,
@@ -33,10 +35,12 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function initState(base: AppState, search: string): AppState {
   const url = readUrlParams(search);
   const prefs = loadPrefs(base.preferences);
+  const remembered = loadRememberedKey();
   return {
     ...base,
     preferences: url.lang ? { ...prefs, language: url.lang } : prefs,
     demo: url.demo || loadDemoFlag(),
+    key: remembered ? { ...base.key, key: remembered, remember: true } : base.key,
   };
 }
 
@@ -57,6 +61,10 @@ export function AppProvider({
 
   useEffect(() => savePrefs(state.preferences), [state.preferences]);
   useEffect(() => saveDemoFlag(state.demo), [state.demo]);
+  useEffect(
+    () => saveRememberedKey(state.key.key, state.key.remember),
+    [state.key.key, state.key.remember]
+  );
 
   const value = useMemo(() => ({ state, dispatch }), [state]);
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

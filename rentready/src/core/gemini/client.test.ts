@@ -132,8 +132,9 @@ describe('generateContent', () => {
     );
 
     const pending = generateContent({ ...params, timeoutMs: 50 });
+    const settled = expect(pending).rejects.toMatchObject({ code: 'TIMEOUT' });
     await vi.advanceTimersByTimeAsync(5000);
-    await expect(pending).resolves.toEqual({ text: '', aborted: true });
+    await settled;
   });
 });
 

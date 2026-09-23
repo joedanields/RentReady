@@ -126,9 +126,6 @@ export async function generateContent(params: GenerateParams): Promise<GeminiRes
         await sleep(500 * attempts + Math.random() * 500);
         continue;
       }
-      if (appErr?.code === 'TIMEOUT') {
-        return { text: '', aborted: true };
-      }
       throw appErr ?? createAppError('UNKNOWN');
     }
   }

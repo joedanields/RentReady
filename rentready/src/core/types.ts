@@ -111,6 +111,8 @@ export interface AskResult {
 }
 
 export interface AnalysisResult {
+  /** Set when an AI read was attempted but failed, so the local report was shown instead. */
+  fallback?: 'NETWORK' | 'TIMEOUT';
   /** 'local': rules only, no AI read — no match rows, checklist not checked. */
   mode: 'local' | 'ai';
   overview: string;
@@ -155,6 +157,8 @@ export interface AppError {
   code: string;
   message: string;
   retryable: boolean;
+  /** Redacted technical detail for debugging; never shown as the user-facing message. */
+  details?: string;
 }
 
 export interface KeyState {

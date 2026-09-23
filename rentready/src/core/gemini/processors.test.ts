@@ -60,14 +60,13 @@ describe('processAskResponse', () => {
     expect(out.citations[0]!.clauseId).toBe('c001');
   });
 
-  it('passes through not_in_document and needs_professional with all citations', () => {
+  it('keeps needs_professional but drops citations that did not verify', () => {
     const resp = response('needs_professional', [
       { clauseId: 'c001', quote: 'made up quote body text' },
     ]);
     const out = processAskResponse({ clauses: CLAUSES, modelResponse: resp });
     expect(out.status).toBe('needs_professional');
-    expect(out.citations).toHaveLength(1);
-    expect(out.citations[0]!.status).toBe('unverified');
+    expect(out.citations).toEqual([]);
   });
 
   it('throws a validation error for malformed model output', () => {

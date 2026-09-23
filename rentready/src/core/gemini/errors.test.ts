@@ -29,16 +29,24 @@ describe('createAppError', () => {
     expect(err.message).toContain('No API key set');
   });
 
-  it('appends redacted details when present', () => {
+  it('keeps redacted details apart from the user-facing message', () => {
     const err = createAppError(
       'KEY_REJECTED',
       `rejected key ${fakeKey('SyBadKeyValue1234567890zz')}`
     );
-    expect(err.message).toContain('rejected key AIza••••••[redacted]');
+    expect(err.details).toBe('rejected key AIza••••••[redacted]');
+    expect(err.message).not.toContain('rejected key');
   });
 });
 
 describe('mapHttpError', () => {
+  it('tells a quota error apart from a rate limit on 429', () => {
+    expect(mapHttpError(429, '{"error":{"message":"You exceeded your current quota"}}').code).toBe(
+      'QUOTA'
+    );
+    expect(mapHttpError(429, 'Too many requests').code).toBe('RATE_LIMITED');
+  });
+
   it('maps auth statuses to KEY_REJECTED', () => {
     for (const s of [400, 401, 403]) {
       expect(mapHttpError(s, 'nope').code).toBe('KEY_REJECTED');

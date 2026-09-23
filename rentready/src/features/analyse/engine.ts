@@ -94,15 +94,25 @@ export async function runAnalysis(opts: AnalyseOptions): Promise<AnalysisResult>
 
   onStage?.('calling');
   if (!apiKey) throw createAppError('NO_KEY');
-  const { text } = await generateContent({
-    model,
-    apiKey,
-    system,
-    userPrompt,
-    responseSchema: ANALYSIS_SCHEMA,
-    temperature: 0.2,
-    maxOutputTokens: 8192,
-  });
+  let text: string;
+  try {
+    ({ text } = await generateContent({
+      model,
+      apiKey,
+      system,
+      userPrompt,
+      responseSchema: ANALYSIS_SCHEMA,
+      temperature: 0.2,
+      maxOutputTokens: 8192,
+    }));
+  } catch (e) {
+    // Offline or too slow: the rules still run locally, so show that report instead of nothing.
+    const code = (e as { code?: string }).code;
+    if (code === 'NETWORK' || code === 'TIMEOUT') {
+      return { ...analyseDocument({ answers, clauses, localOnly: true }), fallback: code };
+    }
+    throw e;
+  }
 
   if (!text.trim()) {
     throw createAppError('MODEL_INVALID_OUTPUT');
@@ -117,7 +127,12 @@ export async function runAnalysis(opts: AnalyseOptions): Promise<AnalysisResult>
   }
 
   onStage?.('verify');
-  return analyseDocument({ answers, clauses, modelResponse });
+  try {
+    return analyseDocument({ answers, clauses, modelResponse });
+  } catch {
+    // Zod rejected the shape: never show a half-validated report.
+    throw createAppError('MODEL_INVALID_OUTPUT');
+  }
 }
 
 /** Default model from VITE_DEFAULT_MODEL (public, safe) or bundled default */

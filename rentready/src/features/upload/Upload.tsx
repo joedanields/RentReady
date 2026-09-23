@@ -12,7 +12,7 @@ import { parseFile, parsePastedText, type ParsedDocument } from '../../core/pars
 import { LIMITS } from '../../core/limits';
 import { runAnalysis, parseSampleAgreement, getDefaultModel } from '../analyse/engine';
 import { useDemoMode } from '../analyse/demo';
-import { redact } from '../../core/gemini/errors';
+import { aiErrorMessage } from '../analyse/aiError';
 import type { DocumentState } from '../../core/types';
 import { intakeMessage } from './intakeMessage';
 
@@ -112,8 +112,8 @@ export function Upload({ onAnalysed }: { onAnalysed: () => void }) {
       }
       onAnalysed();
     } catch (e) {
-      const err = e as { code?: string; message?: string };
-      const message = redact(err.message ?? '') || t('errorPrefix');
+      const err = e as { code?: string };
+      const message = aiErrorMessage(e);
       dispatch({
         type: 'SET_ANALYSIS',
         analysis: {
@@ -249,7 +249,7 @@ export function Upload({ onAnalysed }: { onAnalysed: () => void }) {
             </p>
           </div>
 
-          {!demo.active && !state.key.key && <KeyPanel />}
+          {doc.fileType !== 'sample' && !state.key.key && <KeyPanel onUseSample={handleSample} />}
 
           <div className="flex flex-wrap gap-3">
             <Button size="lg" onClick={() => void performAnalysis()}>

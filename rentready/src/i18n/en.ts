@@ -275,6 +275,35 @@ export const ui = {
   findingsForClause: 'Mentioned in: {items}',
   thingsToRaiseCta: '{n} things to raise',
 
+  // Key panel and AI errors
+  keyFieldLabel: 'Your Gemini API key',
+  keyFieldHint: 'Starts with "AIza". A free key from Google AI Studio works.',
+  keySave: 'Use this key',
+  keyInvalid:
+    "That doesn't look like a Gemini key. It should start with AIza and be about 39 characters.",
+  keySaved: 'Key set: {masked}',
+  keyDeleteTip:
+    'Tip: create a key just for RentReady, and delete it in AI Studio when you are done.',
+  keyUseSample: 'Try the sample in demo mode instead',
+  reportFallback:
+    "We couldn't reach Gemini, so this is the offline check. Try again when you're back online.",
+  'aiError.NO_KEY':
+    'Add your Gemini key to check this agreement with AI, or try the sample in demo mode.',
+  'aiError.KEY_REJECTED':
+    'Your key was rejected. Check it in Google AI Studio, or try the sample in demo mode.',
+  'aiError.RATE_LIMITED': 'Gemini is busy right now. Wait a minute and try again.',
+  'aiError.QUOTA':
+    "Your key's free quota looks used up for now. Try again later, or use the sample in demo mode.",
+  'aiError.MODEL_BLOCKED':
+    'Gemini declined to answer this one. Try again, or rephrase your question.',
+  'aiError.MODEL_INVALID_OUTPUT': 'Gemini sent back something we could not use. Please try again.',
+  'aiError.NETWORK':
+    'You seem to be offline. The offline checks still work; AI needs a connection.',
+  'aiError.TIMEOUT': 'That took too long. Please try again.',
+  'aiError.BUDGET_EXHAUSTED':
+    "You've used this session's AI calls. Reload the page to reset the counter, or keep using the offline checks.",
+  'aiError.UNKNOWN': 'Something went wrong. Please try again.',
+
   // Upload / intake
   uploadIntro: 'Your agreement is read here in your browser. Nothing is uploaded to a server.',
   uploadAccepts: 'PDF or Word (.docx), up to 10 MB and 40 pages.',

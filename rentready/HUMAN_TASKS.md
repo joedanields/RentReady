@@ -27,7 +27,8 @@ Things only the project owner can do. Everything else is automated or in the rep
 ## 3. Real Gemini key for `npm run eval` (Phase 9)
 1. Create a free-tier key at https://aistudio.google.com/apikey — a fresh key used only for this project.
 2. Put it in `rentready/.env.local` (gitignored) as `GEMINI_API_KEY=...`.
-3. Run `npm run eval` and paste the metrics table into the README. Delete the key in AI Studio afterwards if you like.
+3. Run `npm run eval` and paste the metrics table into the README.
+4. Optional: with the same key, analyse the sample in the app and replace the hand-authored fixtures in `src/sample/sampleData.ts` with the real responses (`npx vitest run src/sample` must stay green). Delete the key in AI Studio afterwards if you like.
 
 ## 4. Submission (Phase 10)
 - Record the demo video (script in `docs/SUBMISSION.md` §2).

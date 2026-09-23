@@ -96,6 +96,12 @@ export function Report({
         )}
       </div>
 
+      {analysis.fallback && (
+        <p role="alert" className="rounded-lg border border-notcovered/40 bg-amber-50 p-3 text-sm">
+          {t('reportFallback')}
+        </p>
+      )}
+
       {local && (
         <div className="rounded-xl border border-border bg-gray-50 p-4">
           <h2 className="font-semibold">{t('localModeTitle')}</h2>
