@@ -39,7 +39,7 @@ export function initState(base: AppState, search: string): AppState {
   return {
     ...base,
     preferences: url.lang ? { ...prefs, language: url.lang } : prefs,
-    demo: url.demo || loadDemoFlag(),
+    demo: base.demo || url.demo || loadDemoFlag(),
     key: remembered ? { ...base.key, key: remembered, remember: true } : base.key,
   };
 }

@@ -4,13 +4,15 @@
  * and never implies that something was compared or checked when it wasn't.
  */
 
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
+import { AskPanel } from '../ask/AskPanel';
 import { useApp } from '../../state/AppProvider';
 import { t, type UiKey } from '../../i18n';
 import { Tabs } from '../../components/Tabs';
 import { Badge, type BadgeTone } from '../../components/Badge';
 import { Mark } from '../../components/Mark';
 import { Button } from '../../components/Button';
+import { clauseName } from './clauseName';
 import type {
   AnalysisResult,
   Clause,
@@ -35,16 +37,6 @@ const GAP_TONE: Record<GapRow['state'], BadgeTone> = {
   unclear: 'unclear',
 };
 
-/** "Clause 5 · page 2" — the label a person would look for in their own copy. */
-export function clauseName(clause: Clause): string {
-  const label = clause.label ?? clause.heading ?? String(clause.order);
-  if (clause.page === null) return t('clauseChipNoPage', { label });
-  if (clause.pageEnd !== null && clause.pageEnd !== clause.page) {
-    return t('clauseChipPages', { label, page: clause.page, pageEnd: clause.pageEnd });
-  }
-  return t('clauseChip', { label, page: clause.page });
-}
-
 export function Report({
   onNegotiate,
   onMoveIn,
@@ -57,6 +49,8 @@ export function Report({
   const { state } = useApp();
   const analysis = state.analysis.result;
   const [activeTab, setActiveTab] = useState('gaps');
+  // Set by a citation chip in Ask: open Details and move focus to that clause.
+  const [focusClause, setFocusClause] = useState<string | null>(null);
 
   if (!analysis) {
     return (
@@ -129,6 +123,7 @@ export function Report({
         tabs={[
           { id: 'gaps', label: t('tabGaps'), controlId: 'report-panel' },
           { id: 'details', label: t('tabDetails'), controlId: 'report-panel' },
+          { id: 'ask', label: t('tabAsk'), controlId: 'report-panel' },
         ]}
         activeId={activeTab}
         onChange={setActiveTab}
@@ -165,8 +160,21 @@ export function Report({
               ))}
             </ReportSection>
           </div>
+        ) : activeTab === 'ask' ? (
+          <AskPanel
+            onShowClause={clauseId => {
+              setFocusClause(clauseId);
+              setActiveTab('details');
+            }}
+          />
         ) : (
-          <DetailsPanel analysis={analysis} clauses={clauses} local={local} />
+          <DetailsPanel
+            analysis={analysis}
+            clauses={clauses}
+            local={local}
+            focusClause={focusClause}
+            onFocused={() => setFocusClause(null)}
+          />
         )}
       </Tabs>
 
@@ -371,13 +379,25 @@ function DetailsPanel({
   analysis,
   clauses,
   local,
+  focusClause = null,
+  onFocused,
 }: {
   analysis: AnalysisResult;
   clauses: Clause[];
   local: boolean;
+  focusClause?: string | null;
+  onFocused?: () => void;
 }) {
   const [query, setQuery] = useState('');
   const searchId = useId();
+
+  useEffect(() => {
+    if (!focusClause) return;
+    const el = document.getElementById(`clause-${focusClause}`);
+    el?.scrollIntoView?.({ block: 'start' });
+    el?.focus();
+    onFocused?.();
+  }, [focusClause, onFocused]);
 
   // Which findings cite each clause, so the full list shows why a clause matters.
   const findings = useMemo(() => {

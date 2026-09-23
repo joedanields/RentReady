@@ -76,3 +76,24 @@ test('the report reflows at 320 px without horizontal scrolling', async ({ page 
   );
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+test('Ask in the demo: a cited answer jumps to its clause; an uncovered topic says so', async ({
+  page,
+}) => {
+  await page.goto('/?demo=1#/upload');
+  await page.getByRole('button', { name: 'Use the sample' }).click();
+  await page.getByRole('button', { name: 'Check my agreement' }).click();
+  await page.getByRole('tab', { name: 'Ask' }).click();
+
+  await page.getByRole('button', { name: 'Can I keep a cat?' }).click();
+  await expect(
+    page.getByRole('article', { name: 'Can I keep a cat?' }).getByText('Not in your agreement')
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: 'Can I leave after six months?' }).click();
+  const answer = page.getByRole('article', { name: 'Can I leave after six months?' });
+  await expect(answer.getByText('Answered')).toBeVisible();
+  await answer.getByRole('button', { name: 'Clause 3 · page 1' }).click();
+  await expect(page.locator('#clause-c004')).toBeFocused();
+  await expectNoSeriousAxe(page);
+});

@@ -304,6 +304,26 @@ export const ui = {
     "You've used this session's AI calls. Reload the page to reset the counter, or keep using the offline checks.",
   'aiError.UNKNOWN': 'Something went wrong. Please try again.',
 
+  // Ask
+  askTitle: 'Ask about your agreement',
+  askLabel: 'Your question',
+  askHint: 'Answers come only from your agreement, with the clause to prove it.',
+  askSubmit: 'Ask',
+  askThinking: 'Reading your agreement…',
+  askCharCount: '{n} of {max} characters',
+  askNeedsKey:
+    'Asking your own questions needs a Gemini key. In demo mode, try one of the suggested questions.',
+  askHistory: 'Your questions',
+  askMissing: 'What the agreement leaves out',
+  askFollowUps: 'Questions to ask the owner, in writing',
+  askCitations: 'Where it says so',
+  'askSuggest.leave': 'Can I leave after six months?',
+  'askSuggest.pet': 'Can I keep a cat?',
+  'askSuggest.water': 'Can the owner cut off the water if we have a dispute?',
+  'askSuggest.notice': 'How much notice must I give before leaving?',
+  'askSuggest.deposit': 'When will I get my deposit back?',
+  'askSuggest.repairs': 'Who pays if the geyser breaks?',
+
   // Upload / intake
   uploadIntro: 'Your agreement is read here in your browser. Nothing is uploaded to a server.',
   uploadAccepts: 'PDF or Word (.docx), up to 10 MB and 40 pages.',

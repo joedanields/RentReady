@@ -6,12 +6,24 @@ import { generateContent, repairJson } from '../../core/gemini/client';
 import {
   buildSystemPreamble,
   buildAnalysisUserPrompt,
-  serialiseClausesForPrompt,
+  buildAskUserPrompt,
 } from '../../core/gemini/prompts';
-import { ANALYSIS_SCHEMA, DEFAULT_MODEL } from '../../core/gemini/responseSchemas';
+import { ANALYSIS_SCHEMA, ASK_SCHEMA, DEFAULT_MODEL } from '../../core/gemini/responseSchemas';
+import { processAskResponse } from '../../core/gemini/processors';
+import { LIMITS } from '../../core/limits';
 import { createAppError } from '../../core/gemini/errors';
-import type { Clause, InterviewAnswers, AnalysisResult, Preferences } from '../../core/types';
-import { SAMPLE_PAGES, SAMPLE_ANALYSIS_RESPONSE } from '../../sample/sampleData';
+import type {
+  Clause,
+  InterviewAnswers,
+  AnalysisResult,
+  AskResult,
+  Preferences,
+} from '../../core/types';
+import {
+  SAMPLE_PAGES,
+  SAMPLE_ANALYSIS_RESPONSE,
+  SAMPLE_ASK_RESPONSES,
+} from '../../sample/sampleData';
 import type { ParsedDocument } from '../../core/parsing/intake';
 
 export type { ParsedDocument };
@@ -141,6 +153,61 @@ export function getDefaultModel(): string {
   return typeof fromEnv === 'string' && fromEnv ? fromEnv : DEFAULT_MODEL;
 }
 
-export function serialiseAgreementForExport(rawText: string): string {
-  return serialiseClausesForPrompt(segmentClauses(rawText).slice(0, 1));
+export interface AskOptions {
+  question: string;
+  clauses: Clause[];
+  apiKey: string | null;
+  model: string;
+  preferences: Preferences;
+  city: string | null;
+  budgetUsed: number;
+  budgetLimit: number;
+  demo: boolean;
+  isSample: boolean;
+}
+
+/** Normalises a question for matching against the recorded demo questions. */
+const questionKey = (q: string) =>
+  q
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+/**
+ * Answers a question about the agreement. The sample in demo mode uses recorded answers (only
+ * for the questions that were recorded — anything else gets NO_KEY, never an invented answer);
+ * otherwise a key is required. Every answer goes through processAskResponse, which verifies
+ * citations and downgrades an uncited "answered" to "not_in_document".
+ */
+export async function runAsk(opts: AskOptions): Promise<AskResult> {
+  const { question, clauses, apiKey, model, preferences, city, demo, isSample } = opts;
+
+  if (demo && isSample && !apiKey) {
+    const recorded = SAMPLE_ASK_RESPONSES.find(
+      r => questionKey(r.question) === questionKey(question)
+    );
+    if (!recorded) throw createAppError('NO_KEY');
+    return processAskResponse({ clauses, modelResponse: recorded.response });
+  }
+  if (!apiKey) throw createAppError('NO_KEY');
+  if (opts.budgetUsed >= opts.budgetLimit) throw createAppError('BUDGET_EXHAUSTED');
+
+  const { text } = await generateContent({
+    model,
+    apiKey,
+    system: buildSystemPreamble({
+      language: preferences.language,
+      readingLevel: preferences.readingLevel,
+      city,
+    }),
+    userPrompt: buildAskUserPrompt(question, clauses),
+    responseSchema: ASK_SCHEMA,
+    temperature: 0.2,
+    maxOutputTokens: LIMITS.MAX_SMALL_CALL_TOKENS,
+  });
+  try {
+    return processAskResponse({ clauses, modelResponse: JSON.parse(repairJson(text)) });
+  } catch {
+    throw createAppError('MODEL_INVALID_OUTPUT');
+  }
 }
