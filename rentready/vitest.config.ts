@@ -9,11 +9,18 @@ export default defineConfig({
     },
   },
   test: {
-    environment: 'node',
     // Component tests need a DOM; core tests stay in Node to prove src/core has no DOM dependency.
-    environmentMatchGlobs: [['src/**/*.test.tsx', 'jsdom']],
+    projects: [
+      {
+        extends: true,
+        test: { name: 'node', environment: 'node', include: ['src/**/*.test.ts'] },
+      },
+      {
+        extends: true,
+        test: { name: 'dom', environment: 'jsdom', include: ['src/**/*.test.tsx'] },
+      },
+    ],
     setupFiles: ['./tests/setup.ts'],
-    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary', 'html'],

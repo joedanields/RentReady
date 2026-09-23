@@ -8,7 +8,7 @@ There is no backend, so deployment is just static files. No Functions, no KV, no
 | Framework preset | Vite |
 | Build command | `npm run build` |
 | Output directory | `dist` |
-| Environment variable | `NODE_VERSION = 20` |
+| Environment variable | `NODE_VERSION = 22` (also pinned in `.node-version`) |
 
 Optional build-time vars (public, safe): `VITE_DEFAULT_MODEL` (default Gemini Flash model ID), `VITE_APP_VERSION` (commit SHA for the footer). **Never add a Gemini key here** — there is no server to keep it private, and a key in a build var would ship inside the bundle.
 

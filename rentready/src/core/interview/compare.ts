@@ -140,6 +140,13 @@ function computeVerdict(
       } else if (agreedNorm !== null && writtenNorm !== null) {
         const diff = Math.abs(agreedNorm - writtenNorm);
         if (diff > 1) differs = true;
+      } else {
+        // Nothing comparable (e.g. "a deposit as mutually agreed"): never report a match.
+        return {
+          verdict: 'unclear',
+          severity: 'INFO',
+          note: 'The agreement mentions a deposit, but not an amount we could compare.',
+        };
       }
 
       if (!differs) {

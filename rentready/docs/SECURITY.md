@@ -71,4 +71,4 @@ This mirrors the data-minimisation and purpose-limitation ideas in India's Digit
 - [x] Injection fixture produces no behavioural change — `src/core/injection.test.ts` (unit level)
 - [x] Oversized and wrong-type files rejected with friendly errors — `src/core/parsing/intake.test.ts`, `e2e/upload.spec.ts`
 - [x] "Forget key" (E2E) and "Clear everything" (component test `AppProvider.test.tsx`) verified
-- [x] `npm audit --omit=dev` — 0 vulnerabilities
+- [x] `npm audit` — 0 vulnerabilities, including dev tooling (Vite 8, Vitest 5, vite-plugin-pwa 1.3)

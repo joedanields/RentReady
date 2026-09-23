@@ -102,8 +102,7 @@ body {
 @media print {
   header,
   footer,
-  nav,
-  .print:hidden {
+  nav {
     display: none !important;
   }
   body {

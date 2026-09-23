@@ -136,6 +136,18 @@ describe('compareAnswer — monthlyRent', () => {
 });
 
 describe('compareAnswer — deposit', () => {
+  it('is unclear, never "matches", when the written deposit has no amount or months', () => {
+    const row = compareAnswer(
+      'deposit',
+      '80000',
+      'a deposit as mutually agreed',
+      true,
+      verified('c001'),
+      NORMALISED
+    );
+    expect(row.verdict).toBe('unclear');
+  });
+
   it('matches when months agree even if raw amounts differ in phrasing', () => {
     const row = compareAnswer('deposit', '2 months', '₹80,000', true, verified('c001'), NORMALISED);
     expect(row.verdict).toBe('matches');
