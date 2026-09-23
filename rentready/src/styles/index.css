@@ -45,3 +45,22 @@ body {
 [data-lang="hi"] {
   font-family: "Noto Sans Devanagari", system-ui, sans-serif;
 }
+/* Print: the move-in kit and report print as clean documents without app chrome. */
+@media print {
+  header,
+  footer,
+  nav,
+  .print:hidden {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+  details > *:not(summary) {
+    display: block !important;
+  }
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+  }
+}

@@ -11,6 +11,23 @@ import {
   PHOTO_GUIDE,
 } from '../../core/movein/checklist';
 import { normaliseAnswers } from '../../core/interview/normalise';
+import { extractFacts } from '../../core/rules/extract';
+import type { Clause, InterviewAnswers, NormalisedAnswers } from '../../core/types';
+
+/**
+ * The timeline should follow the *agreement* (UX_FLOW §9): its term and the tenant's notice
+ * period win over what the user remembered, which is only a fallback.
+ */
+export function timelineInputs(answers: InterviewAnswers, clauses: Clause[]): NormalisedAnswers {
+  const interview = normaliseAnswers(answers);
+  const facts = extractFacts(clauses);
+  return {
+    ...interview,
+    duration: facts.durationDays?.value ?? interview.duration,
+    noticePeriod: facts.noticeTenantDays?.value ?? interview.noticePeriod,
+    lockIn: facts.lockInDays?.value ?? interview.lockIn,
+  };
+}
 
 export function MoveIn({ onBack }: { onBack: () => void }) {
   const { state, dispatch } = useApp();
@@ -19,12 +36,18 @@ export function MoveIn({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     if (!state.movein.kit) {
       const kit = buildMoveInKit(
-        normaliseAnswers(state.interview.answers),
+        timelineInputs(state.interview.answers, state.document.clauses),
         analysis?.matches ?? []
       );
       dispatch({ type: 'SET_MOVEIN_KIT', kit });
     }
-  }, [state.movein.kit, state.interview.answers, analysis?.matches, dispatch]);
+  }, [
+    state.movein.kit,
+    state.interview.answers,
+    state.document.clauses,
+    analysis?.matches,
+    dispatch,
+  ]);
 
   const kit = state.movein.kit;
   if (!kit) return null;
@@ -37,7 +60,10 @@ export function MoveIn({ onBack }: { onBack: () => void }) {
   const done = kit.checklist.filter(i => i.completed).length;
 
   const download = () => {
-    const md = exportMoveInKitAsMarkdown(kit, normaliseAnswers(state.interview.answers));
+    const md = exportMoveInKitAsMarkdown(
+      kit,
+      timelineInputs(state.interview.answers, state.document.clauses)
+    );
     const blob = new Blob([md], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -53,7 +79,10 @@ export function MoveIn({ onBack }: { onBack: () => void }) {
         <h1 id="movein-title" className="text-2xl font-semibold">
           {t('moveInKit')}
         </h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 print:hidden">
+          <Button size="sm" variant="secondary" onClick={() => window.print()}>
+            {t('print')}
+          </Button>
           <Button size="sm" variant="secondary" onClick={download}>
             {t('downloadMd')}
           </Button>
@@ -64,7 +93,7 @@ export function MoveIn({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className="rounded-xl border border-border p-4">
-        <div className="text-sm text-muted">{t('progress', { current: done, total })}</div>
+        <div className="text-sm text-muted">{t('checklistProgress', { done, total })}</div>
         <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
           <div
             className="h-2 rounded-full bg-primary transition-all"
@@ -90,7 +119,7 @@ export function MoveIn({ onBack }: { onBack: () => void }) {
                         type="checkbox"
                         checked={item.completed}
                         onChange={() => toggle(item.id)}
-                        className="h-5 w-5"
+                        className="h-5 w-5 accent-primary"
                       />
                       <span className={item.completed ? 'text-muted line-through' : ''}>
                         {item.description}

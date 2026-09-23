@@ -7,6 +7,7 @@ import type {
   MatchRow,
   NormalisedAnswers,
 } from '../types.js';
+import { periodDays } from '../rules/extract.js';
 
 export const ROOMS = [
   'Living Room',
@@ -157,14 +158,11 @@ function buildTimeline(interview: NormalisedAnswers, matches: MatchRow[]): Timel
   const events: TimelineEvent[] = [];
   let id = 0;
 
-  // Find notice period from agreement
-  let noticeDays = 30; // default
+  // Notice period: the caller's value (read from the agreement, see MoveIn.timelineInputs) wins;
+  // then the model's written value ("two months" — words included); 30 days only as a last resort.
   const noticeMatch = matches.find(m => m.key === 'noticePeriod' && m.written);
-  if (noticeMatch?.written) {
-    noticeDays = parseNoticeFromText(noticeMatch.written) ?? 30;
-  } else if (interview.noticePeriod) {
-    noticeDays = interview.noticePeriod;
-  }
+  const noticeDays =
+    interview.noticePeriod ?? (noticeMatch?.written ? periodDays(noticeMatch.written) : null) ?? 30;
 
   // Find agreement end date
   const durationDays = interview.duration ?? 330; // default 11 months
@@ -220,18 +218,6 @@ function buildTimeline(interview: NormalisedAnswers, matches: MatchRow[]): Timel
   });
 
   return events;
-}
-
-function parseNoticeFromText(text: string): number | null {
-  const cleaned = text.trim().toLowerCase();
-  if (cleaned === '15 days') return 15;
-  if (cleaned === '1 month') return 30;
-  if (cleaned === '2 months') return 60;
-  const dayMatch = cleaned.match(/(\d+)\s*days?/);
-  if (dayMatch) return parseInt(dayMatch[1]!, 10);
-  const monthMatch = cleaned.match(/(\d+)\s*months?/);
-  if (monthMatch) return parseInt(monthMatch[1]!, 10) * 30;
-  return null;
 }
 
 /** Export move-in kit as Markdown */

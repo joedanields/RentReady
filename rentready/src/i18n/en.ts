@@ -324,6 +324,24 @@ export const ui = {
   'askSuggest.deposit': 'When will I get my deposit back?',
   'askSuggest.repairs': 'Who pays if the geyser breaks?',
 
+  checklistProgress: '{done} of {total} checked',
+
+  // Negotiate
+  negotiateIntro: 'Pick what to raise. We draft a message you can edit before sending.',
+  negotiateEmpty: 'Nothing to raise yet. Check an agreement first.',
+  negotiatePick: 'What to raise',
+  negotiatePolish: 'Improve the wording with AI',
+  negotiatePolishing: 'Improving the wording…',
+  negotiatePolishNeedsKey:
+    'Improving the wording needs a Gemini key. The draft above is ready to use.',
+  negotiateWordingTitle: 'Suggested wording for the agreement',
+  downloaded: 'Downloaded',
+  shareUnavailable: 'Sharing is not available on this device. Use Copy instead.',
+  copyFailed: 'Copy did not work. Select the text and copy it yourself.',
+  mdDisclaimer:
+    'Suggested wording is a starting point to discuss, not legal drafting. RentReady gives information, not legal advice.',
+  backToReport: 'Back to the report',
+
   // Upload / intake
   uploadIntro: 'Your agreement is read here in your browser. Nothing is uploaded to a server.',
   uploadAccepts: 'PDF or Word (.docx), up to 10 MB and 40 pages.',

@@ -61,9 +61,9 @@ Legend: ⬜ todo · 🟨 doing · ✅ done · Est = focused hours
 - ✅ Downgrade rule + tests for all statuses
 
 ## Phase 7 – Actions (Day 9) · Est 6h
-- ⬜ Negotiation pack: selection, tone/channel, AI wording call, editable output, copy/share/download
-- ⬜ Move-in kit: checklist, photo guide, meter readings, timeline computed from found notice/term dates
-- ⬜ Print stylesheet; `.md` export
+- ✅ Negotiation pack: selection, tone/channel, AI wording call, editable output, copy/share/download
+- ✅ Move-in kit: checklist, photo guide, meter readings, timeline computed from found notice/term dates
+- ✅ Print stylesheet; `.md` export
 **Done when:** a judge can leave the demo holding a message and a checklist.
 
 ## Phase 8 – Language, a11y, PWA (Day 10) · Est 6h
@@ -140,3 +140,7 @@ Next: Phase 6 — Ask (one day left: prioritising Must items 6–7, then submiss
 ### Day 1 (cont.) – 2026-09-23 — Phase 6
 Done: Ask tab — suggested questions, grounded answers with status badges, lawyer note, missing info and follow-up questions, citation chips that focus the clause; demo answers only for recorded questions; downgrade of uncited answers tested end to end. 34 e2e.
 Next: Phase 7 — negotiation pack and move-in kit.
+
+### Day 1 (cont.) – 2026-09-23 — Phase 7
+Done: Negotiation pack rebuilt (raisable items incl. rule findings, radios, editable message, copy/share/.md, labelled suggested wording, optional AI polish); builder cites printed clause numbers. Move-in kit follows the agreement's dates, prints cleanly. 38 e2e incl. .md download contents and print emulation.
+Next: submission hardening — README, security checklist, bundle check, HUMAN_TASKS; Phase 8 items (Hindi, read-aloud, PWA) only if time remains.

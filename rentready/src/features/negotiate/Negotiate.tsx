@@ -1,102 +1,143 @@
-/** Negotiate — pick rows, tone, channel; local message; optional AI enhance; copy/export */
+/**
+ * Negotiation pack (UX_FLOW §8): choose what to raise, tone and channel; an editable message
+ * built locally (works offline); optional AI polish; copy, share or download as Markdown.
+ * Suggested wording is always labelled as a starting point, not legal drafting.
+ */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { useApp } from '../../state/AppProvider';
 import { t } from '../../i18n';
 import { Button } from '../../components/Button';
 import { buildNegotiationLocal } from '../../core/negotiation/builder';
-import { useDemoMode } from '../analyse/demo';
 import { getDefaultModel } from '../analyse/engine';
+import { aiErrorMessage } from '../analyse/aiError';
 import { generateContent, repairJson } from '../../core/gemini/client';
 import { buildNegotiationUserPrompt, buildSystemPreamble } from '../../core/gemini/prompts';
 import { NEGOTIATION_SCHEMA } from '../../core/gemini/responseSchemas';
-import { redact } from '../../core/gemini/errors';
 import { validateModelNegotiation } from '../../core/schemas';
+import { LIMITS } from '../../core/limits';
+import type { AnalysisResult, NegotiationResult } from '../../core/types';
+
+interface Raisable {
+  id: string;
+  label: string;
+  high: boolean;
+}
+
+/** Everything the report found that is worth raising, HIGH items first. */
+export function raisableRows(analysis: AnalysisResult): Raisable[] {
+  const rows: Raisable[] = [
+    ...analysis.matches
+      .filter(m => m.verdict === 'differs' || m.verdict === 'not_covered')
+      .map(m => ({
+        id: `match-${m.key}`,
+        label: `${t(`topic.${m.key}`)} — ${t(`verdict.${m.verdict}`)}`,
+        high: m.severity === 'HIGH',
+      })),
+    ...analysis.gaps
+      .filter(g => g.state === 'absent')
+      .map(g => ({ id: `gap-${g.id}`, label: g.title, high: false })),
+    ...analysis.rules
+      .filter(r => r.severity !== 'INFO')
+      .map(r => ({ id: `rule-${r.ruleId}`, label: r.title, high: r.severity === 'HIGH' })),
+  ];
+  return rows.sort((a, b) => Number(b.high) - Number(a.high));
+}
+
+/** The pack as Markdown: message, wording per item, disclaimer. Never includes the key. */
+export function negotiationMarkdown(message: string, result: NegotiationResult): string {
+  const wording = result.items.map(i => `- **${i.ask}**\n  ${i.suggestedWording}`).join('\n');
+  return [
+    '# RentReady — message to the owner',
+    '',
+    message,
+    '',
+    `## ${t('negotiateWordingTitle')}`,
+    '',
+    wording,
+    '',
+    `_${t('mdDisclaimer')}_`,
+    '',
+  ].join('\n');
+}
 
 export function Negotiate({ onBack }: { onBack: () => void }) {
   const { state, dispatch } = useApp();
-  const demo = useDemoMode();
+  const id = useId();
   const analysis = state.analysis.result;
-  const [enhancing, setEnhancing] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { selectedRows, tone, channel } = state.negotiation;
+  const [message, setMessage] = useState('');
+  const [polishing, setPolishing] = useState(false);
+  const [status, setStatus] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const rows = useMemo(() => {
-    if (!analysis) return [];
-    return [
-      ...analysis.matches
-        .filter(m => m.verdict === 'differs')
-        .map(m => ({ id: `match-${m.key}`, label: mNote(m), selected: true })),
-      ...analysis.gaps
-        .filter(g => g.state === 'absent')
-        .map(g => ({ id: `gap-${g.id}`, label: g.title, selected: true })),
-    ];
-  }, [analysis]);
+  const rows = useMemo(() => (analysis ? raisableRows(analysis) : []), [analysis]);
 
+  // Pre-tick HIGH items (or everything, if nothing is HIGH) the first time.
   useEffect(() => {
-    if (rows.length > 0 && state.negotiation.selectedRows.length === 0) {
-      dispatch({ type: 'SET_NEGOTIATION_SELECTION', rows: rows.map(r => r.id) });
+    if (rows.length > 0 && selectedRows.length === 0) {
+      const high = rows.filter(r => r.high).map(r => r.id);
+      dispatch({
+        type: 'SET_NEGOTIATION_SELECTION',
+        rows: high.length ? high : rows.map(r => r.id),
+      });
     }
-  }, [rows, dispatch, state.negotiation.selectedRows.length]);
+  }, [rows, selectedRows.length, dispatch]);
 
-  const rebuildLocal = () => {
-    if (!analysis) return;
-    const result = buildNegotiationLocal({
-      matches: analysis.matches,
-      gaps: analysis.gaps,
-      selectedRowIds: state.negotiation.selectedRows,
-      tone: state.negotiation.tone,
-      channel: state.negotiation.channel,
-    });
-    dispatch({ type: 'SET_NEGOTIATION_RESULT', result });
-  };
+  const local = useMemo(
+    () =>
+      analysis
+        ? buildNegotiationLocal({
+            matches: analysis.matches,
+            gaps: analysis.gaps,
+            rules: analysis.rules,
+            clauses: state.document.clauses,
+            selectedRowIds: selectedRows,
+            tone,
+            channel,
+          })
+        : null,
+    [analysis, state.document.clauses, selectedRows, tone, channel]
+  );
 
-  useEffect(rebuildLocal, [
-    state.negotiation.selectedRows,
-    state.negotiation.tone,
-    state.negotiation.channel,
-    analysis,
-    dispatch,
-  ]);
+  // A new selection, tone or channel redrafts the message (edits are to the current draft).
+  useEffect(() => {
+    if (local) {
+      dispatch({ type: 'SET_NEGOTIATION_RESULT', result: local });
+      setMessage(local.message);
+    }
+  }, [local, dispatch]);
 
   if (!analysis) {
     return (
-      <section className="pt-6 text-center text-muted">
-        <p>Run an analysis first.</p>
+      <section aria-labelledby="negotiate-title" className="space-y-4 pt-2">
+        <h1 id="negotiate-title" className="text-2xl font-semibold">
+          {t('negotiateTitle')}
+        </h1>
+        <p className="text-muted">{t('negotiateEmpty')}</p>
         <Button onClick={onBack}>{t('back')}</Button>
       </section>
     );
   }
 
-  const toggle = (id: string) => {
-    const next = state.negotiation.selectedRows.includes(id)
-      ? state.negotiation.selectedRows.filter(x => x !== id)
-      : [...state.negotiation.selectedRows, id];
-    dispatch({ type: 'SET_NEGOTIATION_SELECTION', rows: next });
-  };
-
-  const enhance = async () => {
-    if (enhancing) return;
-    const result = buildNegotiationLocal({
-      matches: analysis.matches,
-      gaps: analysis.gaps,
-      selectedRowIds: state.negotiation.selectedRows,
-      tone: state.negotiation.tone,
-      channel: state.negotiation.channel,
+  const result = state.negotiation.result ?? local;
+  const toggle = (rowId: string) =>
+    dispatch({
+      type: 'SET_NEGOTIATION_SELECTION',
+      rows: selectedRows.includes(rowId)
+        ? selectedRows.filter(x => x !== rowId)
+        : [...selectedRows, rowId],
     });
-    if (demo.active) {
-      // Demo: keep local message
-      dispatch({ type: 'SET_NEGOTIATION_RESULT', result });
-      return;
-    }
+
+  const polish = async () => {
     if (!state.key.key) {
-      setError(t('noKeyYet'));
+      setError(t('negotiatePolishNeedsKey'));
       return;
     }
-    setEnhancing(true);
+    if (!local || local.items.length === 0 || polishing) return;
+    setPolishing(true);
     setError(null);
     try {
-      const items = result.items.filter(i => state.negotiation.selectedRows.includes(i.rowId));
       const { text } = await generateContent({
         model: getDefaultModel(),
         apiKey: state.key.key,
@@ -106,135 +147,200 @@ export function Negotiate({ onBack }: { onBack: () => void }) {
           city: state.interview.answers.city,
         }),
         userPrompt: buildNegotiationUserPrompt(
-          items.map(i => ({ rowId: i.rowId, ask: i.ask, reason: i.reason })),
-          state.negotiation.tone,
-          state.negotiation.channel
+          local.items.map(i => ({ rowId: i.rowId, ask: i.ask, reason: i.reason })),
+          tone,
+          channel
         ),
         responseSchema: NEGOTIATION_SCHEMA,
         temperature: 0.4,
-        maxOutputTokens: 2048,
+        maxOutputTokens: LIMITS.MAX_SMALL_CALL_TOKENS,
       });
       const parsed = validateModelNegotiation(JSON.parse(repairJson(text)));
-      dispatch({
-        type: 'SET_NEGOTIATION_RESULT',
-        result: { message: parsed.message, items: parsed.items },
-      });
+      // Keep only items that were actually selected; the model cannot add new asks.
+      const items = parsed.items.filter(i => selectedRows.includes(i.rowId));
+      dispatch({ type: 'SET_NEGOTIATION_RESULT', result: { message: parsed.message, items } });
+      setMessage(parsed.message);
       dispatch({ type: 'INCREMENT_BUDGET' });
     } catch (e) {
-      setError(redact(e instanceof Error ? e.message : String(e)));
+      setError(
+        e instanceof SyntaxError || (e as { name?: string }).name === 'ZodError'
+          ? aiErrorMessage({ code: 'MODEL_INVALID_OUTPUT' })
+          : aiErrorMessage(e)
+      );
     } finally {
-      setEnhancing(false);
+      setPolishing(false);
     }
   };
 
-  const copy = async (text: string) => {
+  const copy = async () => {
     try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
+      await navigator.clipboard.writeText(message);
+      setStatus(t('copied'));
     } catch {
-      setError(t('errorPrefix'));
+      setError(t('copyFailed'));
     }
   };
 
-  const message = state.negotiation.result?.message ?? '';
+  const share = async () => {
+    if (typeof navigator.share !== 'function') {
+      setError(t('shareUnavailable'));
+      return;
+    }
+    try {
+      await navigator.share({ text: message });
+    } catch {
+      // The user closed the share sheet; nothing to report.
+    }
+  };
+
+  const download = () => {
+    if (!result) return;
+    const blob = new Blob([negotiationMarkdown(message, result)], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'rentready-message.md';
+    a.click();
+    URL.revokeObjectURL(url);
+    setStatus(t('downloaded'));
+  };
+
+  const radio = <T extends string>(
+    name: string,
+    value: T,
+    current: T,
+    label: string,
+    set: (v: T) => void
+  ) => (
+    <label
+      key={value}
+      className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border px-3 has-[:checked]:border-primary has-[:checked]:bg-green-50"
+    >
+      <input
+        type="radio"
+        name={name}
+        checked={current === value}
+        onChange={() => set(value)}
+        className="h-5 w-5 accent-primary"
+      />
+      {label}
+    </label>
+  );
 
   return (
     <section aria-labelledby="negotiate-title" className="space-y-5 pt-2">
-      <h1 id="negotiate-title" className="text-2xl font-semibold">
-        {t('negotiateTitle')}
-      </h1>
-
-      <div className="space-y-2">
-        {rows.map(r => {
-          const checked = state.negotiation.selectedRows.includes(r.id);
-          return (
-            <label
-              key={r.id}
-              className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg border border-border px-3"
-            >
-              <input
-                type="checkbox"
-                checked={checked}
-                onChange={() => toggle(r.id)}
-                className="h-5 w-5"
-              />
-              <span className="text-sm">{r.label}</span>
-            </label>
-          );
-        })}
+      <div>
+        <h1 id="negotiate-title" className="text-2xl font-semibold">
+          {t('negotiateTitle')}
+        </h1>
+        <p className="text-muted">{t('negotiateIntro')}</p>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <fieldset className="space-y-2">
+        <legend className="mb-1 font-semibold">{t('negotiatePick')}</legend>
+        {rows.length === 0 && <p className="text-sm text-muted">{t('negotiateEmpty')}</p>}
+        {rows.map(r => (
+          <label
+            key={r.id}
+            className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg border border-border px-3 py-2"
+          >
+            <input
+              type="checkbox"
+              checked={selectedRows.includes(r.id)}
+              onChange={() => toggle(r.id)}
+              className="h-5 w-5 shrink-0 accent-primary"
+            />
+            <span className="text-sm">{r.label}</span>
+          </label>
+        ))}
+      </fieldset>
+
+      <div className="flex flex-col gap-4 sm:flex-row">
         <fieldset>
           <legend className="mb-1 text-sm font-medium">{t('tone')}</legend>
           <div className="flex gap-2">
-            {(['polite', 'direct'] as const).map(tone => (
-              <button
-                key={tone}
-                type="button"
-                aria-pressed={state.negotiation.tone === tone}
-                onClick={() => dispatch({ type: 'SET_NEGOTIATION_TONE', tone })}
-                className={`min-h-[44px] rounded-lg border px-4 ${
-                  state.negotiation.tone === tone
-                    ? 'border-primary bg-primary text-white'
-                    : 'border-border'
-                }`}
-              >
-                {tone === 'polite' ? t('tonePolite') : t('toneDirect')}
-              </button>
-            ))}
+            {radio(`${id}-tone`, 'polite', tone, t('tonePolite'), v =>
+              dispatch({ type: 'SET_NEGOTIATION_TONE', tone: v })
+            )}
+            {radio(`${id}-tone`, 'direct', tone, t('toneDirect'), v =>
+              dispatch({ type: 'SET_NEGOTIATION_TONE', tone: v })
+            )}
           </div>
         </fieldset>
         <fieldset>
           <legend className="mb-1 text-sm font-medium">{t('channel')}</legend>
           <div className="flex gap-2">
-            {(['whatsapp', 'email'] as const).map(channel => (
-              <button
-                key={channel}
-                type="button"
-                aria-pressed={state.negotiation.channel === channel}
-                onClick={() => dispatch({ type: 'SET_NEGOTIATION_CHANNEL', channel })}
-                className={`min-h-[44px] rounded-lg border px-4 ${
-                  state.negotiation.channel === channel
-                    ? 'border-primary bg-primary text-white'
-                    : 'border-border'
-                }`}
-              >
-                {channel === 'whatsapp' ? t('channelWhatsApp') : t('channelEmail')}
-              </button>
-            ))}
+            {radio(`${id}-channel`, 'whatsapp', channel, t('channelWhatsApp'), v =>
+              dispatch({ type: 'SET_NEGOTIATION_CHANNEL', channel: v })
+            )}
+            {radio(`${id}-channel`, 'email', channel, t('channelEmail'), v =>
+              dispatch({ type: 'SET_NEGOTIATION_CHANNEL', channel: v })
+            )}
           </div>
         </fieldset>
       </div>
 
       {message && (
-        <section aria-label={t('generatedMessage')} className="space-y-2">
-          <h2 className="font-semibold">{t('generatedMessage')}</h2>
+        <div className="space-y-2">
+          <label htmlFor={`${id}-message`} className="block font-semibold">
+            {t('generatedMessage')}
+          </label>
+          <p id={`${id}-message-hint`} className="text-sm text-muted">
+            {t('editMessage')}
+          </p>
           <textarea
-            readOnly
+            id={`${id}-message`}
             value={message}
-            aria-label={t('generatedMessage')}
-            className="min-h-[220px] w-full rounded-lg border border-border p-3 text-sm"
+            aria-describedby={`${id}-message-hint`}
+            onChange={e => setMessage(e.target.value)}
+            className="min-h-[220px] w-full rounded-lg border border-border bg-surface p-3 text-sm"
           />
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => copy(message)} disabled={copied}>
-              {copied ? t('copied') : t('copy')}
+            <Button onClick={() => void copy()}>{t('copy')}</Button>
+            <Button variant="secondary" onClick={() => void share()}>
+              {t('share')}
             </Button>
-            <Button size="sm" variant="secondary" onClick={enhance} disabled={enhancing}>
-              {enhancing ? '…' : t('next')}
+            <Button variant="secondary" onClick={download}>
+              {t('downloadMd')}
             </Button>
-            <Button size="sm" variant="ghost" onClick={onBack}>
-              {t('back')}
+            <Button variant="ghost" onClick={() => void polish()} disabled={polishing}>
+              {polishing ? t('negotiatePolishing') : t('negotiatePolish')}
             </Button>
           </div>
-          {error && <p className="text-sm text-red-700">{error}</p>}
+          <p role="status" className="text-sm text-muted">
+            {status}
+          </p>
+          {error && (
+            <p
+              role="alert"
+              className="rounded-lg border border-notcovered/40 bg-amber-50 p-3 text-sm"
+            >
+              {error}
+            </p>
+          )}
+        </div>
+      )}
+
+      {result && result.items.length > 0 && (
+        <section aria-labelledby={`${id}-wording`} className="space-y-2">
+          <h2 id={`${id}-wording`} className="font-semibold">
+            {t('negotiateWordingTitle')}
+          </h2>
+          <p className="text-sm text-muted">{t('suggestedWordingLabel')}</p>
+          <ul className="space-y-2">
+            {result.items.map(item => (
+              <li key={item.rowId} className="rounded-lg border border-border p-3 text-sm">
+                <p className="font-medium">{item.ask}</p>
+                <p className="mt-1 rounded bg-gray-50 p-2">“{item.suggestedWording}”</p>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
+
+      <Button variant="ghost" onClick={onBack}>
+        {t('backToReport')}
+      </Button>
     </section>
   );
-}
-
-function mNote(m: import('../../core/types').MatchRow): string {
-  return m.note || m.written || m.agreed;
 }
