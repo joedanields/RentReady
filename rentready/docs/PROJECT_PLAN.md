@@ -34,10 +34,10 @@ Legend: ⬜ todo · 🟨 doing · ✅ done · Est = focused hours
 **Done when:** full interview is keyboard-only navigable and covered by tests.
 
 ## Phase 3 – Document intake (Day 4) · Est 6h
-- ⬜ Lazy pdf.js parser with pages; scanned detection; lazy mammoth; paste path
-- ⬜ File guards (magic bytes, size, pages, chars) with friendly errors
-- ⬜ `core/parsing/segmenter.ts` + tests
-- ⬜ Sample agreement (synthetic, with deliberate problems) + "Use the sample"
+- ✅ Lazy pdf.js parser with pages; scanned detection; lazy mammoth; paste path
+- ✅ File guards (magic bytes, size, pages, chars) with friendly errors
+- ✅ `core/parsing/segmenter.ts` + tests
+- ✅ Sample agreement (synthetic, with deliberate problems) + "Use the sample"
 **Done when:** sample and a real PDF both produce clauses with correct pages.
 
 ## Phase 4 – Local-only report (Day 5) · Est 6h
@@ -121,3 +121,8 @@ Blocked: none (deploy still waiting on HUMAN_TASKS.md).
 Decisions: #22–29.
 Next: Phase 3 — audit the existing parsers/segmenter/upload against ARCHITECTURE §5 and SECURITY file guards; synthetic sample agreement + "Use the sample".
 
+### Day 1 (cont.) – 2026-09-23 — Phase 3
+Done: Intake guards (size before read, magic bytes + extension, pages, chars) with specific messages; PDF/DOCX parsers throw typed errors and share one segmenter; segmenter rewritten after finding duplicated clauses, an 8-character heading cap and wrong pageEnd; sample fixture realigned and guarded by a verification test; Upload screen with upload / paste / sample, a "Read N clauses across M pages" confirmation, and errors that offer paste or the sample. Tests: 27 files unit/component; 22 e2e incl. a real in-memory PDF through pdf.js under CSP, a scanned PDF and a renamed .exe.
+Blocked: none (deploy still waiting on HUMAN_TASKS.md).
+Decisions: #30–34.
+Next: Phase 4 — local-only report: rules + protection skeleton with no AI (no key and not the sample → local report; recorded responses only for the sample).

@@ -220,6 +220,34 @@ export const ui = {
   summaryAllSkipped:
     "You skipped every question. That's fine — we'll still check what the agreement is missing and flag risky clauses.",
   saveAndReturn: 'Save and go back to your answers',
+
+  // Upload / intake
+  uploadIntro: 'Your agreement is read here in your browser. Nothing is uploaded to a server.',
+  uploadAccepts: 'PDF or Word (.docx), up to 10 MB and 40 pages.',
+  pastePanelLabel: 'Paste the agreement text',
+  pastePanelHint: 'Copy the whole agreement, including clause numbers if it has them.',
+  pastePlaceholder: 'Paste your agreement text here…',
+  readThisText: 'Read this text',
+  readingFile: 'Reading your agreement…',
+  readClausesNoPages: 'Read {count} clauses.',
+  sampleDocName: 'Sample agreement',
+  pastedDocName: 'Pasted text',
+  checkAgreement: 'Check my agreement',
+  useDifferentAgreement: 'Use a different agreement',
+  pasteInstead: 'Paste the text instead',
+  'intake.INVALID_FILE':
+    "That file isn't a PDF or Word (.docx) document. Please choose a PDF or DOCX, or paste the text instead.",
+  'intake.TOO_LARGE':
+    'That file is {mb} MB. Please use a file under 10 MB, or paste the text instead.',
+  'intake.TOO_MANY_PAGES':
+    'That PDF has {pages} pages. RentReady reads up to {max} — upload just the agreement pages, or paste the text.',
+  'intake.TOO_MANY_CHARS':
+    "That's {chars} characters, more than the {max} we can check at once. Remove any pages that aren't part of the agreement.",
+  'intake.SCANNED_PDF':
+    "This PDF looks like a scan, so there's no text we can read in the browser. If you can, paste the agreement text instead.",
+  'intake.EMPTY_TEXT': "There's no agreement text to check yet. Paste the text, or upload a file.",
+  'intake.PARSE_FAILED':
+    "We couldn't read that file. It may be damaged or password-protected. Try another copy, or paste the text instead.",
 } as const;
 
 export type UiKey = keyof typeof ui;

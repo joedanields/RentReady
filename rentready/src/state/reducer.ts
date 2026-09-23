@@ -106,6 +106,16 @@ function reducer(state: AppState, action: AppAction): AppState {
         ...state,
         document: { ...state.document, ...action.document },
       };
+    case 'CLEAR_DOCUMENT':
+      // A new agreement invalidates every result derived from the old one.
+      return {
+        ...state,
+        document: structuredClone(INITIAL_STATE.document),
+        analysis: structuredClone(INITIAL_STATE.analysis),
+        qa: structuredClone(INITIAL_STATE.qa),
+        negotiation: structuredClone(INITIAL_STATE.negotiation),
+        movein: structuredClone(INITIAL_STATE.movein),
+      };
     case 'SET_ANALYSIS':
       return {
         ...state,

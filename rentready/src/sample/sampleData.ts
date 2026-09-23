@@ -15,7 +15,7 @@ The Licensee shall not vacate the premises before the expiry of six (6) months f
 4. RENT
 The Licensee shall pay monthly rent of Rs. 40,000/- (Rupees Forty Thousand only) payable in advance on or before the seventh day of each English calendar month.`,
   `5. SECURITY DEPOSIT
-The Licensee shall pay a security deposit of Rs. 1,20,000/- (Rupees One Lakh Twenty Thousand only) equivalent to three months' rent at the time of execution of this agreement. The said deposit shall be refundable at the time of vacating the premises, subject to deductions as determined by the Licensor.
+The Licensee shall pay a security deposit of Rs. 1,20,000/- (Rupees One Lakh Twenty Thousand only) equivalent to three months' rent at the time of execution of this agreement. The said deposit shall be refunded without interest, subject to deductions as determined by the Licensor.
 6. MAINTENANCE
 The Licensee shall pay all society maintenance charges, water charges, electricity charges and all other outgoings in respect of the said premises during the tenure of this agreement.
 7. REPAIRS
@@ -55,7 +55,7 @@ export const SAMPLE_ANALYSIS_RESPONSE = {
       key: 'monthlyRent',
       found: true,
       writtenValue: 'Rs. 40,000/- per month',
-      clauseId: 'c004',
+      clauseId: 'c005',
       quote: 'The Licensee shall pay monthly rent of Rs. 40,000/-',
       ambiguity: null,
     },
@@ -63,7 +63,7 @@ export const SAMPLE_ANALYSIS_RESPONSE = {
       key: 'deposit',
       found: true,
       writtenValue: "Rs. 1,20,000/- equivalent to three months' rent",
-      clauseId: 'c005',
+      clauseId: 'c006',
       quote:
         "a security deposit of Rs. 1,20,000/- (Rupees One Lakh Twenty Thousand only) equivalent to three months' rent",
       ambiguity: null,
@@ -72,7 +72,7 @@ export const SAMPLE_ANALYSIS_RESPONSE = {
       key: 'duration',
       found: true,
       writtenValue: 'eleven (11) months',
-      clauseId: 'c002',
+      clauseId: 'c003',
       quote: 'for a period of eleven (11) months',
       ambiguity: null,
     },
@@ -80,7 +80,7 @@ export const SAMPLE_ANALYSIS_RESPONSE = {
       key: 'lockIn',
       found: true,
       writtenValue: 'six (6) months lock-in',
-      clauseId: 'c003',
+      clauseId: 'c004',
       quote: 'shall not vacate the premises before the expiry of six (6) months',
       ambiguity: null,
     },
@@ -88,7 +88,7 @@ export const SAMPLE_ANALYSIS_RESPONSE = {
       key: 'noticePeriod',
       found: true,
       writtenValue: 'two months',
-      clauseId: 'c010',
+      clauseId: 'c011',
       quote: "give two months' written notice",
       ambiguity: null,
     },
@@ -96,7 +96,7 @@ export const SAMPLE_ANALYSIS_RESPONSE = {
       key: 'maintenance',
       found: true,
       writtenValue: 'Licensee pays society maintenance, water, electricity',
-      clauseId: 'c006',
+      clauseId: 'c007',
       quote:
         'The Licensee shall pay all society maintenance charges, water charges, electricity charges',
       ambiguity: null,
@@ -105,7 +105,7 @@ export const SAMPLE_ANALYSIS_RESPONSE = {
       key: 'repairs',
       found: true,
       writtenValue: 'Licensee responsible for all repairs including structural',
-      clauseId: 'c007',
+      clauseId: 'c008',
       quote:
         'responsible for all repairs and maintenance of the premises including but not limited to electrical, plumbing, structural',
       ambiguity: null,
@@ -122,9 +122,9 @@ export const SAMPLE_ANALYSIS_RESPONSE = {
       key: 'extras',
       found: true,
       writtenValue: 'no visitors after 10 p.m. and no overnight guests without permission',
-      clauseId: 'c009',
+      clauseId: 'c010',
       quote:
-        'no visitors to remain in the premises after 10:00 p.m. and shall not permit any guests to stay overnight',
+        'shall not permit any visitors to remain in the premises after 10:00 p.m. and shall not permit any guests to stay overnight',
       ambiguity: null,
     },
   ],
@@ -133,7 +133,7 @@ export const SAMPLE_ANALYSIS_RESPONSE = {
       id: 'DEPOSIT_AMOUNT',
       state: 'present',
       summary: 'Deposit stated in rupees',
-      clauseId: 'c005',
+      clauseId: 'c006',
       quote: 'a security deposit of Rs. 1,20,000/-',
     },
     {
@@ -147,21 +147,21 @@ export const SAMPLE_ANALYSIS_RESPONSE = {
       id: 'DEPOSIT_DEDUCTION_BASIS',
       state: 'unclear',
       summary: 'Deductions as determined by Licensor',
-      clauseId: 'c005',
+      clauseId: 'c006',
       quote: 'subject to deductions as determined by the Licensor',
     },
     {
       id: 'RENT_AMOUNT',
       state: 'present',
       summary: 'Rent stated',
-      clauseId: 'c004',
+      clauseId: 'c005',
       quote: 'The Licensee shall pay monthly rent of Rs. 40,000/-',
     },
     {
       id: 'RENT_DUE_DATE',
       state: 'present',
       summary: 'Due by 7th of month',
-      clauseId: 'c004',
+      clauseId: 'c005',
       quote: 'payable in advance on or before the seventh day',
     },
     {
@@ -175,42 +175,42 @@ export const SAMPLE_ANALYSIS_RESPONSE = {
       id: 'MAINTENANCE_CHARGES',
       state: 'present',
       summary: 'Tenant pays all charges',
-      clauseId: 'c006',
+      clauseId: 'c007',
       quote: 'The Licensee shall pay all society maintenance charges',
     },
     {
       id: 'REPAIRS_MAJOR',
       state: 'present',
       summary: 'Tenant responsible for structural repairs',
-      clauseId: 'c007',
+      clauseId: 'c008',
       quote: 'including but not limited to electrical, plumbing, structural and major repairs',
     },
     {
       id: 'REPAIRS_MINOR',
       state: 'present',
       summary: 'All repairs on tenant',
-      clauseId: 'c007',
+      clauseId: 'c008',
       quote: 'responsible for all repairs and maintenance',
     },
     {
       id: 'NOTICE_TENANT',
       state: 'present',
       summary: 'Two months notice',
-      clauseId: 'c010',
+      clauseId: 'c011',
       quote: "give two months' written notice",
     },
     {
       id: 'NOTICE_LANDLORD',
       state: 'present',
       summary: 'Two months notice',
-      clauseId: 'c010',
+      clauseId: 'c011',
       quote: "give two months' written notice",
     },
     {
       id: 'LOCK_IN',
       state: 'present',
       summary: 'Six months lock-in',
-      clauseId: 'c003',
+      clauseId: 'c004',
       quote: 'before the expiry of six (6) months',
     },
     {
@@ -231,8 +231,8 @@ export const SAMPLE_ANALYSIS_RESPONSE = {
       id: 'SUBLET_GUESTS',
       state: 'present',
       summary: 'No subletting, no visitors after 10pm',
-      clauseId: 'c009',
-      quote: 'no visitors to remain in the premises after 10:00 p.m.',
+      clauseId: 'c010',
+      quote: 'shall not permit any visitors to remain in the premises after 10:00 p.m.',
     },
     { id: 'RENEWAL', state: 'absent', summary: 'No renewal clause', clauseId: null, quote: null },
     {
@@ -260,7 +260,7 @@ export const SAMPLE_ANALYSIS_RESPONSE = {
       id: 'DISPUTE_RESOLUTION',
       state: 'present',
       summary: 'Arbitration in Sample City',
-      clauseId: 'c013',
+      clauseId: 'c014',
       quote: 'shall be referred to arbitration at Sample City',
     },
   ],
@@ -275,10 +275,10 @@ export const SAMPLE_ASK_RESPONSES: Array<{ question: string; response: unknown }
         "Yes — after the six-month lock-in ends you may give two months' written notice. If you leave during the lock-in, the agreement says the owner keeps the full deposit and you owe rent for the remaining lock-in months, so it is better to wait until the lock-in completes.",
       citations: [
         {
-          clauseId: 'c003',
+          clauseId: 'c004',
           quote: 'shall not vacate the premises before the expiry of six (6) months',
         },
-        { clauseId: 'c010', quote: "give two months' written notice" },
+        { clauseId: 'c011', quote: "give two months' written notice" },
       ],
       missingInfo: [],
       suggestedQuestions: [],
@@ -306,7 +306,7 @@ export const SAMPLE_ASK_RESPONSES: Array<{ question: string; response: unknown }
         'The agreement itself does not say anything about cutting water or power. Generally, withholding essential supplies as a remedy is viewed severely and the Model Tenancy Act, 2021 bars it where adopted. If this ever happens, the outcome depends on state law and specifics, so confirm with a lawyer.',
       citations: [
         {
-          clauseId: 'c011',
+          clauseId: 'c012',
           quote: 'The Licensor shall be entitled to re-enter the premises and take possession',
         },
       ],

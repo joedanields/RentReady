@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { parsePdf, isPdfFile, sniffMagicBytes } from './pdfParser';
+import { parsePdf } from './pdfParser';
+import { IntakeError } from './intake';
 import { LIMITS } from '../limits';
 import type { TextItem } from 'pdfjs-dist/types/src/display/api.js';
 
@@ -25,14 +26,8 @@ const LONG_A =
 const LONG_B =
   'The tenant shall give one month written notice before vacating the premises at the end of the term without incurring any penalty whatsoever.';
 
-const file = (overrides: Partial<File> = {}): File =>
-  ({
-    size: 1000,
-    type: '',
-    name: 'agreement.pdf',
-    arrayBuffer: async () => new ArrayBuffer(0),
-    ...overrides,
-  }) as unknown as File;
+const file = (): File =>
+  ({ size: 1000, name: 'agreement.pdf', arrayBuffer: async () => new ArrayBuffer(0) }) as File;
 
 function pdfWithPages(itemsByPage: TextItem[][], numPages = itemsByPage.length) {
   getDocument.mockReturnValue({
@@ -45,71 +40,79 @@ function pdfWithPages(itemsByPage: TextItem[][], numPages = itemsByPage.length) 
   } as never);
 }
 
+async function expectIntakeError(p: Promise<unknown>, code: string) {
+  const err = await p.then(
+    () => null,
+    (e: unknown) => e
+  );
+  expect(err).toBeInstanceOf(IntakeError);
+  expect((err as IntakeError).code).toBe(code);
+  return err as IntakeError;
+}
+
 beforeEach(() => {
   getDocument.mockReset();
 });
 
 describe('parsePdf', () => {
-  it('segments a single-page PDF into clauses', async () => {
+  it('rebuilds lines from text items and segments them into clauses', async () => {
     pdfWithPages([
-      [item('1.', true, 40), item(LONG_A, true, 40), item('2.', true, 90), item(LONG_B, true, 90)],
+      [
+        item('1.', false, 700),
+        item(' Rent', true, 700),
+        item(LONG_A, true, 680),
+        item('2. Notice', true, 640),
+        item(LONG_B, true, 620),
+      ],
     ]);
-
     const result = await parsePdf(file());
     expect(result.pageCount).toBe(1);
-    expect(result.rawText).toContain('--- PAGE 1 ---');
-    expect(result.clauses.length).toBeGreaterThanOrEqual(1);
-    expect(result.clauses[0]!.text.length).toBeGreaterThan(20);
+    expect(result.clauses.map(c => c.label)).toEqual(['1', '2']);
+    expect(result.clauses[0]!.text.startsWith('1. Rent')).toBe(true);
   });
 
-  it('tracks page numbers across multiple pages', async () => {
+  it('starts a new line when the y position jumps even without an end-of-line flag', async () => {
     pdfWithPages([
-      [item('1.', true, 40), item(LONG_A, true, 40)],
-      [item('2.', true, 40), item(LONG_B, true, 40)],
+      [item('1. Rent', false, 700), item(LONG_A, false, 680), item(LONG_B, true, 600)],
     ]);
-
     const result = await parsePdf(file());
-    expect(result.pageCount).toBe(2);
-    expect(result.rawText).toContain('--- PAGE 2 ---');
+    expect(result.rawText.split('\n')).toEqual(['1. Rent', LONG_A, LONG_B]);
   });
 
-  it('rejects oversized files', async () => {
-    await expect(parsePdf(file({ size: LIMITS.MAX_FILE_SIZE + 1 }))).rejects.toThrow('TOO_LARGE');
+  it('records the page each clause starts and ends on', async () => {
+    pdfWithPages([
+      [item('1. Rent', true, 700), item(LONG_A, true, 680)],
+      [item(LONG_B, true, 700)],
+      [item('2. Notice', true, 700), item(LONG_B, true, 680)],
+    ]);
+    const result = await parsePdf(file());
+    expect(result.pageCount).toBe(3);
+    expect(result.clauses.map(c => [c.label, c.page, c.pageEnd])).toEqual([
+      ['1', 1, 2],
+      ['2', 3, 3],
+    ]);
   });
 
-  it('rejects PDFs with too many pages', async () => {
+  it('turns damaged or password-protected PDFs into PARSE_FAILED', async () => {
+    getDocument.mockReturnValue({
+      promise: Promise.reject(new Error('PasswordException')),
+    } as never);
+    await expectIntakeError(parsePdf(file()), 'PARSE_FAILED');
+  });
+
+  it('rejects PDFs with too many pages, saying how many', async () => {
     pdfWithPages([[item('x', true, 1)]], LIMITS.MAX_PAGES + 1);
-    await expect(parsePdf(file())).rejects.toThrow('TOO_MANY_PAGES');
+    const err = await expectIntakeError(parsePdf(file()), 'TOO_MANY_PAGES');
+    expect(err.detail).toEqual({ pages: LIMITS.MAX_PAGES + 1, max: LIMITS.MAX_PAGES });
   });
 
-  it('rejects scanned PDFs with no extractable text', async () => {
-    pdfWithPages([[]]);
-    await expect(parsePdf(file())).rejects.toThrow('SCANNED_PDF');
+  it('rejects scanned PDFs with little or no extractable text', async () => {
+    pdfWithPages([[], [item('Page 2', true, 1)]]);
+    await expectIntakeError(parsePdf(file()), 'SCANNED_PDF');
   });
 
   it('rejects documents that exceed the character cap', async () => {
     pdfWithPages([[item('x'.repeat(LIMITS.MAX_CHARS + 1), true, 1)]]);
-    await expect(parsePdf(file())).rejects.toThrow('TOO_MANY_CHARS');
-  });
-});
-
-describe('isPdfFile', () => {
-  it('accepts the pdf mimetype or extension', () => {
-    expect(isPdfFile(file({ type: 'application/pdf' }))).toBe(true);
-    expect(isPdfFile(file({ name: 'a.pdf' }))).toBe(true);
-    expect(isPdfFile(file({ name: 'a.docx' }))).toBe(false);
-  });
-});
-
-describe('sniffMagicBytes', () => {
-  it('detects pdf, zip and unknown signatures', () => {
-    expect(sniffMagicBytes(new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]))).toBe('pdf');
-    expect(sniffMagicBytes(new Uint8Array([0x50, 0x4b, 0x03, 0x04]))).toBe('zip');
-    expect(sniffMagicBytes(new Uint8Array([0x00, 0x01, 0x02, 0x03]))).toBe('unknown');
-  });
-
-  it('returns unknown for short buffers', () => {
-    expect(sniffMagicBytes(new Uint8Array([0x25]))).toBe('unknown');
-    expect(sniffMagicBytes(new Uint8Array(0))).toBe('unknown');
+    await expectIntakeError(parsePdf(file()), 'TOO_MANY_CHARS');
   });
 });

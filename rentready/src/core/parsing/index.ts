@@ -1,5 +1,4 @@
-/** Parsing module exports */
+/** Parsing module exports. The PDF/DOCX parsers are reached through parseFile (lazy). */
 
-export * from './pdfParser.js';
-export * from './docxParser.js';
+export * from './intake.js';
 export * from './segmenter.js';

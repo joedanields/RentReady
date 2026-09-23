@@ -12,17 +12,9 @@ import { ANALYSIS_SCHEMA, DEFAULT_MODEL } from '../../core/gemini/responseSchema
 import { createAppError } from '../../core/gemini/errors';
 import type { Clause, InterviewAnswers, AnalysisResult, Preferences } from '../../core/types';
 import { SAMPLE_PAGES, SAMPLE_ANALYSIS_RESPONSE } from '../../sample/sampleData';
+import type { ParsedDocument } from '../../core/parsing/intake';
 
-export interface ParsedDocument {
-  clauses: Clause[];
-  rawText: string;
-  pageCount: number;
-}
-
-export function parsePastedText(text: string): ParsedDocument {
-  const clauses = segmentClauses(text);
-  return { clauses, rawText: text, pageCount: 1 };
-}
+export type { ParsedDocument };
 
 export function parseSampleAgreement(): ParsedDocument {
   const clauses = segmentClauses(SAMPLE_PAGES.join('\n'), SAMPLE_PAGES);

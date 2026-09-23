@@ -1,9 +1,9 @@
-/** PDF parsing with pdf.js — lazy loaded, page tracking */
+/** PDF parsing with pdf.js — lazy loaded (via intake.parseFile), page tracking. */
 
 import type { TextItem } from 'pdfjs-dist/types/src/display/api.js';
-import type { Clause } from '../types.js';
 import { LIMITS } from '../limits.js';
 import { segmentClauses } from './segmenter.js';
+import { IntakeError, checkTextLength, type ParsedDocument } from './intake.js';
 
 type PdfJsModule = typeof import('pdfjs-dist');
 
@@ -12,91 +12,72 @@ let pdfjsLib: PdfJsModule | null = null;
 async function loadPdfJs(): Promise<PdfJsModule> {
   if (pdfjsLib) return pdfjsLib;
   const pdfjs = await import('pdfjs-dist');
+  // Worker served from our own origin (CSP worker-src 'self').
   const worker = await import('pdfjs-dist/build/pdf.worker.mjs?url');
   pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
   pdfjsLib = pdfjs;
   return pdfjsLib;
 }
 
-interface PageLine {
-  text: string;
-  y: number;
-}
+/** Below this many characters per page on average, the PDF is treated as a scan. */
+const SCANNED_CHARS_PER_PAGE = 100;
 
 /** Rebuild lines from text items using hasEOL and y-gaps */
-function rebuildLines(items: TextItem[]): PageLine[] {
-  const lines: PageLine[] = [];
+function rebuildLines(items: TextItem[]): string[] {
+  const lines: string[] = [];
   let current = '';
   let currentY = 0;
   let started = false;
 
-  const flush = (y: number) => {
+  const flush = () => {
     const text = current.trim();
-    if (text) lines.push({ text, y });
+    if (text) lines.push(text);
     current = '';
   };
 
   for (const item of items) {
     const y = item.transform?.[5] ?? 0;
-    if (started && current && Math.abs(y - currentY) > 5) flush(currentY);
+    if (started && current && Math.abs(y - currentY) > 5) flush();
     current +=
       (current && !item.str.startsWith(' ') && !current.endsWith(' ') ? ' ' : '') + item.str;
-    if (item.hasEOL) flush(y);
+    if (item.hasEOL) flush();
     started = true;
     currentY = y;
   }
-  flush(currentY);
+  flush();
   return lines;
 }
 
-export async function parsePdf(
-  file: File
-): Promise<{ clauses: Clause[]; rawText: string; pageCount: number }> {
-  if (file.size > LIMITS.MAX_FILE_SIZE) throw new Error('TOO_LARGE');
-
+export async function parsePdf(file: File): Promise<ParsedDocument> {
   const pdfjs = await loadPdfJs();
-  const data = await file.arrayBuffer();
-  const pdf = await pdfjs.getDocument({ data: new Uint8Array(data) }).promise;
+  const data = new Uint8Array(await file.arrayBuffer());
 
-  if (pdf.numPages > LIMITS.MAX_PAGES) throw new Error('TOO_MANY_PAGES');
+  let pdf: Awaited<ReturnType<PdfJsModule['getDocument']>['promise']>;
+  try {
+    pdf = await pdfjs.getDocument({ data }).promise;
+  } catch {
+    // Damaged, truncated or password-protected: pdf.js' own message isn't user-facing.
+    throw new IntakeError('PARSE_FAILED');
+  }
+
+  if (pdf.numPages > LIMITS.MAX_PAGES) {
+    throw new IntakeError('TOO_MANY_PAGES', { pages: pdf.numPages, max: LIMITS.MAX_PAGES });
+  }
 
   const pageTexts: string[] = [];
-  let totalChars = 0;
-
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
     const items = content.items.filter(
       (item): item is TextItem => 'str' in item && typeof item.str === 'string'
     );
-    const pageText = rebuildLines(items)
-      .map(l => l.text)
-      .join('\n');
-    pageTexts.push(pageText);
-    totalChars += pageText.length;
+    pageTexts.push(rebuildLines(items).join('\n'));
   }
 
-  if (totalChars < 100 * pdf.numPages) throw new Error('SCANNED_PDF');
-  if (totalChars > LIMITS.MAX_CHARS) throw new Error('TOO_MANY_CHARS');
+  const totalChars = pageTexts.reduce((n, t) => n + t.length, 0);
+  if (totalChars < SCANNED_CHARS_PER_PAGE * pdf.numPages) throw new IntakeError('SCANNED_PDF');
+  const rawText = pageTexts.join('\n\n');
+  checkTextLength(rawText);
 
-  const clauses = segmentClauses(pageTexts.join('\n'), pageTexts);
-
-  return {
-    clauses,
-    rawText: pageTexts.map((t, i) => `\n--- PAGE ${i + 1} ---\n` + t).join(''),
-    pageCount: pdf.numPages,
-  };
-}
-
-export function isPdfFile(file: File): boolean {
-  return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-}
-
-/** Magic-byte sniffing for PDF (and DOCX/zip) */
-export function sniffMagicBytes(bytes: Uint8Array): 'pdf' | 'zip' | 'unknown' {
-  if (bytes.length < 4) return 'unknown';
-  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46)
-    return 'pdf';
-  if (bytes[0] === 0x50 && bytes[1] === 0x4b) return 'zip';
-  return 'unknown';
+  return { clauses: segmentClauses(rawText, pageTexts), rawText, pageCount: pdf.numPages };
 }

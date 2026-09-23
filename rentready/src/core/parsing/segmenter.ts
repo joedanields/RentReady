@@ -1,27 +1,50 @@
-/** Clause segmenter — pure functions, 100% tested */
+/** Clause segmenter — pure functions (ARCHITECTURE.md §5). */
 
 import type { Clause } from '../types.js';
 
-const CLAUSE_START_PATTERNS: RegExp[] = [
-  /^\s*\d+(\.\d+){0,3}[.)]?\s+\S/, // 1.  1.1.1  2) followed by text
-  /^(Clause|Article|Section|Schedule|Annexure|Annex)\s+\d+/i,
-  /^\(?[a-z]\)\s/, // (a)  a)
-  /^\(?[ivx]{1,4}\)\s/i, // (i) (iv)
-  /^[A-Z][A-Z\s]{2,7}$/, // ALL-CAPS heading <= 8 words
+/** Clauses shorter than this are dropped (stray page numbers, lone labels). */
+const MIN_CLAUSE_CHARS = 20;
+/** Unnumbered paragraphs are merged until at least this long. */
+const MERGE_TARGET_CHARS = 200;
+/** Longer clauses are split at sentence boundaries so each stays quotable. */
+const MAX_CLAUSE_CHARS = 2000;
+
+const NUMBERED_START: RegExp[] = [
+  /^\d{1,3}(\.\d{1,3}){0,3}[.)]\s+\S/, // 1.  2)  4.2.  1.1.1)
+  /^\d{1,3}(\.\d{1,3}){1,3}\s+\S/, // 4.2 Deposit  1.1.1 Termination
+  // A bare number only counts before a capital: "11 months from…" wrapped from the previous
+  // line must not start a clause, but "5 SECURITY DEPOSIT" should.
+  /^\d{1,2}\s+[A-Z]/,
 ];
 
-const SCHEDULE_PATTERNS: RegExp[] = [
-  /^schedule\s+[a-z0-9]/i,
-  /^annexure\s+[a-z0-9]/i,
-  /^annex\s+[a-z0-9]/i,
-];
+const NAMED_START = /^(Clause|Article|Section|Schedule|Annexure|Annex)\s+\d+/i;
+const LETTER_START = /^\(?[a-z]\)\s/; // (a)  a)
+const ROMAN_START = /^\(?[ivx]{1,4}\)\s/i; // (i) (iv)
+const SCHEDULE_START = /^(schedule|annexure|annex)\s+[a-z0-9]/i;
+
+/** ALL-CAPS heading of at most 8 words, e.g. "TERM", "DISPUTE RESOLUTION". */
+export function isAllCapsHeading(line: string): boolean {
+  const t = line.trim();
+  return (
+    /^[A-Z][A-Z0-9\s&,'’/()-]*$/.test(t) &&
+    /[A-Z]{2}/.test(t) &&
+    t.split(/\s+/).length <= 8 &&
+    t.length <= 80
+  );
+}
 
 /** Check if a line starts a new clause */
 export function isClauseStart(line: string): boolean {
   const trimmed = line.trim();
   if (!trimmed) return false;
-  if (SCHEDULE_PATTERNS.some(p => p.test(trimmed))) return true;
-  return CLAUSE_START_PATTERNS.some(p => p.test(trimmed));
+  return (
+    SCHEDULE_START.test(trimmed) ||
+    NAMED_START.test(trimmed) ||
+    NUMBERED_START.some(p => p.test(trimmed)) ||
+    LETTER_START.test(trimmed) ||
+    ROMAN_START.test(trimmed) ||
+    isAllCapsHeading(trimmed)
+  );
 }
 
 /** Extract a compact label from a clause-start line, or null */
@@ -45,12 +68,9 @@ export function extractLabel(line: string): string | null {
   return null;
 }
 
-const isAllCapsHeading = (line: string): boolean =>
-  /^[A-Z][A-Z\s]{2,7}$/.test(line.trim()) && line.trim().split(/\s+/).length <= 8;
-
 /** Split text at sentence boundaries near maxLen */
 function splitAtSentences(text: string, maxLen: number): string[] {
-  const sentences = text.match(/[^.!?]+[.!?]+/g) ?? [text];
+  const sentences = text.match(/[^.!?]+[.!?]+\s*|[^.!?]+$/g) ?? [text];
   const parts: string[] = [];
   let current = '';
 
@@ -63,110 +83,134 @@ function splitAtSentences(text: string, maxLen: number): string[] {
     }
   }
   if (current.trim()) parts.push(current.trim());
-  return parts.length > 0 ? parts : [text];
+  return parts;
+}
+
+/** A run of lines that began at a clause start (or a paragraph, when nothing is numbered). */
+interface Block {
+  label: string | null;
+  heading: string | null;
+  lines: string[];
+  page: number | null;
+  pageEnd: number | null;
+}
+
+const isMarked = (b: Block): boolean => b.label !== null || b.heading !== null;
+
+function startBlock(line: string, page: number | null): Block {
+  const heading = isAllCapsHeading(line) ? line : null;
+  return {
+    label: heading ? null : extractLabel(line),
+    heading,
+    lines: [line],
+    page,
+    pageEnd: page,
+  };
+}
+
+/** Pass 1: group lines into blocks at clause starts, and at blank lines between plain paragraphs. */
+function toBlocks(lines: Array<{ text: string; page: number | null }>): Block[] {
+  const blocks: Block[] = [];
+  let current: Block | null = null;
+
+  for (const { text, page } of lines) {
+    const line = text.trim();
+    if (!line) {
+      // Paragraph fallback: a blank line ends an unnumbered paragraph, but not a numbered
+      // clause (its body often has blank lines of its own).
+      if (current && !isMarked(current)) {
+        blocks.push(current);
+        current = null;
+      }
+      continue;
+    }
+    if (current && !isClauseStart(line)) {
+      current.lines.push(line);
+      current.pageEnd = page;
+      continue;
+    }
+    if (current) blocks.push(current);
+    current = startBlock(line, page);
+  }
+  if (current) blocks.push(current);
+  return blocks;
 }
 
 /**
- * Segment raw agreement text into clauses.
- * `pageTexts` (optional) allows page tracking.
+ * Segment raw agreement text into clauses with stable ids `c001…`.
+ * `pageTexts` (one string per page) enables page / pageEnd tracking.
+ *
+ * Numbered and headed clauses always stand alone, so a clause id maps to exactly one clause of
+ * the agreement. Unnumbered paragraphs are merged up to ~200 chars; anything over 2,000 chars is
+ * split at sentence boundaries. A heading with no body of its own (e.g. "TERMS" directly above
+ * "1. Rent") is carried onto the next clause instead of becoming an empty clause.
  */
 export function segmentClauses(rawText: string, pageTexts: string[] = []): Clause[] {
-  const lines: Array<{ text: string; page: number | null }> = [];
+  const lines =
+    pageTexts.length > 0
+      ? pageTexts.flatMap((pt, i) => pt.split(/\r?\n/).map(text => ({ text, page: i + 1 })))
+      : rawText.split(/\r?\n/).map(text => ({ text, page: null }));
 
-  if (pageTexts.length > 0) {
-    pageTexts.forEach((pt, i) => {
-      pt.split('\n').forEach(l => lines.push({ text: l, page: i + 1 }));
-    });
-  } else {
-    rawText.split(/\r?\n/).forEach(l => lines.push({ text: l, page: null }));
-  }
-
-  interface RawClauseData {
-    label: string | null;
-    heading: string | null;
-    text: string;
-    page: number | null;
-  }
-
-  const rawClauses: RawClauseData[] = [];
-  let current: RawClauseData | null = null;
-
-  const pushLine = (
-    line: string,
-    page: number | null,
-    prev: RawClauseData | null
-  ): RawClauseData | null => {
-    const trimmed = line.trim();
-    if (isClauseStart(trimmed) && prev && prev.text.trim()) {
-      rawClauses.push(prev);
-      return isAllCapsHeading(trimmed)
-        ? { label: null, heading: trimmed, text: trimmed, page }
-        : { label: extractLabel(trimmed), heading: null, text: trimmed, page };
-    }
-    if (prev) {
-      return { ...prev, text: prev.text + '\n' + trimmed };
-    }
-    return isAllCapsHeading(trimmed)
-      ? { label: null, heading: trimmed, text: trimmed, page }
-      : { label: extractLabel(trimmed), heading: null, text: trimmed, page };
-  };
-
-  for (const { text, page } of lines) {
-    if (!text.trim()) continue;
-    current = pushLine(text, page, current);
-  }
-  if (current && current.text.trim()) rawClauses.push(current);
-
-  // Merge/split to sane lengths, assign stable ids
   const clauses: Clause[] = [];
-  let buffer = '';
-  let bufferMeta: { label: string | null; heading: string | null; page: number | null } = {
-    label: null,
-    heading: null,
-    page: null,
-  };
-  let order = 0;
+  let pending: Block | null = null;
+  let carried: Block | null = null;
 
-  const emit = () => {
-    const text = buffer.trim();
-    if (text.length < 20) return;
-    const parts = text.length > 2000 ? splitAtSentences(text, 2000) : [text];
+  const emit = (b: Block) => {
+    const text = b.lines.join('\n').trim();
+    if (text.length < MIN_CLAUSE_CHARS) return;
+    const parts =
+      text.length > MAX_CLAUSE_CHARS ? splitAtSentences(text, MAX_CLAUSE_CHARS) : [text];
     for (const part of parts) {
+      const order = clauses.length + 1;
       clauses.push({
-        id: `c${String(++order).padStart(3, '0')}`,
-        label: bufferMeta.label,
-        heading: bufferMeta.heading,
+        id: `c${String(order).padStart(3, '0')}`,
+        label: b.label,
+        heading: b.heading,
         text: part,
-        page: bufferMeta.page,
-        pageEnd: bufferMeta.page,
+        page: b.page,
+        pageEnd: b.pageEnd,
         order,
       });
     }
   };
 
-  for (const rc of rawClauses) {
-    const metaChanged = bufferMeta.label !== rc.label || bufferMeta.heading !== rc.heading;
-    if (metaChanged && buffer.trim()) {
-      emit();
-      buffer = '';
-    }
-    buffer += (buffer ? '\n\n' : '') + rc.text;
-    if (rc.label || rc.heading) {
-      bufferMeta = { label: rc.label, heading: rc.heading, page: rc.page };
-    } else if (!bufferMeta.label && !bufferMeta.heading) {
-      bufferMeta = { label: null, heading: null, page: rc.page };
-    }
-    if (buffer.length >= 200) emit();
-  }
-  if (buffer.trim()) emit();
+  const flushPending = () => {
+    if (pending) emit(pending);
+    pending = null;
+  };
 
-  // Assign pageEnd across pages
-  return clauses.map((c, i) => {
-    if (i + 1 < clauses.length && clauses[i + 1]!.page !== null && c.page !== null) {
-      return { ...c, pageEnd: clauses[i + 1]!.page };
+  for (const block of toBlocks(lines)) {
+    if (block.heading !== null && block.lines.length === 1) {
+      // Bare heading: remember it for the next clause.
+      flushPending();
+      if (carried) emit(carried);
+      carried = block;
+      continue;
     }
-    return c;
-  });
+    if (carried) {
+      block.heading ??= carried.heading;
+      block.lines.unshift(...carried.lines);
+      block.page = carried.page;
+      carried = null;
+    }
+
+    if (isMarked(block)) {
+      flushPending();
+      emit(block);
+      continue;
+    }
+    // Plain paragraph: merge into the pending run until it is long enough.
+    if (pending) {
+      pending.lines.push('', ...block.lines);
+      pending.pageEnd = block.pageEnd;
+    } else {
+      pending = block;
+    }
+    if (pending.lines.join('\n').length >= MERGE_TARGET_CHARS) flushPending();
+  }
+  flushPending();
+  if (carried) emit(carried);
+  return clauses;
 }
 
 /** Serialise clauses for the AI prompt with <agreement> delimiters (safe escaping) */

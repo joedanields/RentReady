@@ -174,7 +174,8 @@ export interface Preferences {
 
 export interface DocumentState {
   fileName: string | null;
-  fileType: 'pdf' | 'docx' | 'text' | null;
+  /** 'sample' is the bundled demo agreement — the only document recorded responses apply to. */
+  fileType: 'pdf' | 'docx' | 'text' | 'sample' | null;
   clauses: Clause[];
   rawText: string;
   pageCount: number;
@@ -232,6 +233,7 @@ export type AppAction =
   | { type: 'SET_INTERVIEW_STEP'; step: number }
   | { type: 'SET_INTERVIEW_COMPLETED'; completed: boolean }
   | { type: 'SET_DOCUMENT'; document: Partial<DocumentState> }
+  | { type: 'CLEAR_DOCUMENT' }
   | { type: 'SET_ANALYSIS'; analysis: Partial<AnalysisState> }
   | { type: 'ADD_QA'; question: string; result: AskResult }
   | { type: 'SET_NEGOTIATION_SELECTION'; rows: string[] }

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { parseDocx, isDocxFile } from './docxParser';
+import { parseDocx } from './docxParser';
+import { IntakeError } from './intake';
 import { LIMITS } from '../limits';
 
 vi.mock('mammoth', () => ({ extractRawText: vi.fn() }));
@@ -8,64 +9,58 @@ import * as mammoth from 'mammoth';
 
 const extractRawText = vi.mocked(mammoth.extractRawText);
 
-const file = (overrides: Partial<File> = {}): File =>
-  ({
-    size: 1000,
-    type: '',
-    name: 'agreement.docx',
-    arrayBuffer: async () => new ArrayBuffer(0),
-    ...overrides,
-  }) as unknown as File;
+const file = (): File =>
+  ({ size: 1000, name: 'agreement.docx', arrayBuffer: async () => new ArrayBuffer(0) }) as File;
 
-const TEXT =
-  '1. This is the first clause of the leave and licence agreement made today in Pune city.\n' +
-  '2. The tenant shall pay a monthly rent of forty thousand rupees in advance.\n' +
-  'short.\n' +
-  '3. The tenant shall give one month notice before vacating without penalty.';
+// mammoth separates paragraphs with blank lines.
+const TEXT = [
+  '1. This is the first clause of the leave and licence agreement made today in Pune city.',
+  '',
+  '2. The tenant shall pay a monthly rent of forty thousand rupees in advance.',
+  '',
+  'short.',
+  '',
+  '3. The tenant shall give one month notice before vacating without penalty.',
+].join('\n');
+
+async function codeOf(p: Promise<unknown>): Promise<string | null> {
+  return p.then(
+    () => null,
+    (e: unknown) => (e instanceof IntakeError ? e.code : 'not-an-intake-error')
+  );
+}
 
 beforeEach(() => {
   extractRawText.mockReset();
 });
 
 describe('parseDocx', () => {
-  it('extracts clauses from a raw-text document', async () => {
+  it('uses the shared segmenter: numbered clauses, no pages', async () => {
     extractRawText.mockResolvedValue({ value: TEXT } as never);
-
     const result = await parseDocx(file());
-    expect(result.pageCount).toBe(1);
-    expect(result.rawText).toBe(TEXT.trim());
-    expect(result.clauses).toHaveLength(3);
-    expect(result.clauses.map(c => c.id)).toEqual(['c001', 'c002', 'c003']);
-    expect(result.clauses[0]!.text).toContain('first clause');
-    expect(result.clauses[1]!.text).toContain('forty thousand rupees');
-    expect(result.clauses[1]!.page).toBeNull();
-  });
-
-  it('rejects oversized files', async () => {
-    await expect(parseDocx(file({ size: LIMITS.MAX_FILE_SIZE + 1 }))).rejects.toThrow('TOO_LARGE');
+    expect(result.pageCount).toBe(0);
+    expect(result.rawText).toBe(TEXT);
+    expect(result.clauses.map(c => [c.id, c.label, c.page])).toEqual([
+      ['c001', '1', null],
+      ['c002', '2', null],
+      ['c003', '3', null],
+    ]);
+    // "short." sits inside clause 2's body rather than becoming a fragment clause.
+    expect(result.clauses[1]!.text).toContain('short.');
   });
 
   it('rejects documents that exceed the character cap', async () => {
     extractRawText.mockResolvedValue({ value: 'x'.repeat(LIMITS.MAX_CHARS + 1) } as never);
-    await expect(parseDocx(file())).rejects.toThrow('TOO_MANY_CHARS');
+    expect(await codeOf(parseDocx(file()))).toBe('TOO_MANY_CHARS');
   });
 
-  it('drops blank lines and under-length fragments', async () => {
-    extractRawText.mockResolvedValue({ value: TEXT } as never);
-    const result = await parseDocx(file());
-    expect(result.clauses.every(c => c.text.length >= 20)).toBe(true);
-    expect(result.clauses.some(c => c.text === 'short.')).toBe(false);
+  it('rejects an empty document', async () => {
+    extractRawText.mockResolvedValue({ value: '  \n ' } as never);
+    expect(await codeOf(parseDocx(file()))).toBe('EMPTY_TEXT');
   });
-});
 
-describe('isDocxFile', () => {
-  it('accepts the docx mimetype or extension', () => {
-    expect(
-      isDocxFile(
-        file({ type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
-      )
-    ).toBe(true);
-    expect(isDocxFile(file({ name: 'a.docx' }))).toBe(true);
-    expect(isDocxFile(file({ name: 'a.pdf', type: 'application/pdf' }))).toBe(false);
+  it('turns a corrupt zip into PARSE_FAILED', async () => {
+    extractRawText.mockRejectedValue(new Error('End of central directory not found'));
+    expect(await codeOf(parseDocx(file()))).toBe('PARSE_FAILED');
   });
 });
