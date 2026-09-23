@@ -28,7 +28,7 @@ jobs:
         run: "! git grep -nE 'AIza[0-9A-Za-z_-]{20,}|AQ\\.[0-9A-Za-z._-]{30,}'"
       - run: npm audit --omit=dev --audit-level=high
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: rentready/playwright-report
