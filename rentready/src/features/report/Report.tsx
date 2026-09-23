@@ -13,6 +13,8 @@ import { Badge, type BadgeTone } from '../../components/Badge';
 import { Mark } from '../../components/Mark';
 import { Button } from '../../components/Button';
 import { clauseName } from './clauseName';
+import { Glossary } from '../../components/Glossary';
+import { ReadAloud } from '../../components/ReadAloud';
 import type {
   AnalysisResult,
   Clause,
@@ -159,6 +161,7 @@ export function Report({
                 />
               ))}
             </ReportSection>
+            <Glossary />
           </div>
         ) : activeTab === 'ask' ? (
           <AskPanel
@@ -285,6 +288,7 @@ function MatchCard({ row, clauses }: { row: MatchRow; clauses: Clause[] }) {
         )}
       </dl>
       {row.note && <p className="mt-2 text-sm">{row.note}</p>}
+      {row.note && <ReadAloud text={row.note} what={t(`topic.${row.key}`)} />}
       {row.evidence && (
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <EvidenceBadge evidence={row.evidence} />
@@ -355,6 +359,7 @@ function RuleCard({
         />
       </div>
       <p className="text-sm">{rule.message}</p>
+      <ReadAloud text={`${rule.title}. ${rule.message}`} what={rule.title} />
       {clause && <OriginalText clause={clause} />}
       {rule.questions.length > 0 && (
         <div className="mt-2 text-sm">

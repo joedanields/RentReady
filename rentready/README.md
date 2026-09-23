@@ -65,7 +65,7 @@ Because there's no server to hold a secret, **you bring your own free Gemini API
 - **Negotiation pack** – a polite WhatsApp/email message and suggested replacement wording for each change you want.
 - **Move-in kit** – inspection checklist, photo evidence guide, meter readings, and a deposit-return timeline.
 - **Works on a weak connection** – rule checks and the interview run fully offline; AI is an optional layer.
-- **Accessible** – WCAG 2.2 AA target, keyboard-only use, screen-reader labels, light and dark themes, reading-level setting for AI explanations.
+- **Accessible** – WCAG 2.2 AA target, keyboard-only use, screen-reader labels, light and dark themes, read-aloud, a plain-English glossary, and a reading-level setting for AI explanations.
 
 ## Tech stack
 
@@ -90,10 +90,10 @@ npm run dev          # http://localhost:5173 — starts in Demo mode, no key nee
 
 | Measure | Result |
 |---|---|
-| Unit + component tests | **410** passing (Vitest + Testing Library, axe on every interview step and report state) |
-| End-to-end tests | **19 journeys × 2 viewports = 38** passing (Playwright + axe, desktop and Pixel 7) |
+| Unit + component tests | **429** passing (Vitest + Testing Library, axe on every interview step and report state) |
+| End-to-end tests | **22 journeys × 2 viewports = 44** passing (Playwright + axe, desktop and Pixel 7) |
 | Coverage, `src/core` | 99.7% lines · 97.6% branches · **100%** for `verify/`, `rules/`, `interview/` (enforced in CI) |
-| Initial JS | **132.8 KB gzip** (budget 200 KB); pdf.js and mammoth load only when a file is chosen |
+| Initial JS | **135.8 KB gzip** (budget 200 KB); pdf.js and mammoth load only when a file is chosen |
 | Offline | Interview → paste → full rule report with **zero network requests** (`e2e/report.spec.ts`) |
 | AI calls per report | 1 (analysis); Ask and message polish on demand; session budget of 12 |
 | Production dependencies with known vulnerabilities | 0 (`npm audit --omit=dev`) |
@@ -119,14 +119,13 @@ npm run dev          # http://localhost:5173 — starts in Demo mode, no key nee
 | Problem statement alignment | This README, [`docs/PRD.md`](docs/PRD.md), [`docs/INTERVIEW_SPEC.md`](docs/INTERVIEW_SPEC.md); the interview → report → message flow |
 | Code quality | Strict TS (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), pure `src/core` domain layer, [`docs/DECISIONS.md`](docs/DECISIONS.md) |
 | Security | [`docs/SECURITY.md`](docs/SECURITY.md), the "Claims you can check" table above |
-| Efficiency | Offline rules, one AI call per report, lazy parsers, 132.8 KB initial JS |
+| Efficiency | Offline rules, one AI call per report, lazy parsers, 135.8 KB initial JS |
 | Testing | [`docs/TESTING.md`](docs/TESTING.md), `npm run test:coverage`, `npm run test:e2e` |
 | Accessibility | [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md); axe in component and E2E tests; keyboard-only interview journey |
 
 ## Known limitations
 
 - English only for now: the Hindi dictionary is incomplete, so the language switch is hidden.
-- Read-aloud and the glossary are not built yet.
 - Demo-mode AI responses are hand-authored against the sample agreement (and verification-tested), not recorded from Gemini.
 
 ## Documentation

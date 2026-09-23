@@ -14,6 +14,7 @@ import type { AskResult } from '../../core/types';
 import { runAsk, getDefaultModel } from '../analyse/engine';
 import { aiErrorMessage } from '../analyse/aiError';
 import { clauseName } from '../report/clauseName';
+import { ReadAloud } from '../../components/ReadAloud';
 
 const STATUS: Record<AskResult['status'], [BadgeTone, UiKey]> = {
   answered: ['matches', 'statusAnswered'],
@@ -183,6 +184,7 @@ function AnswerCard({
         <Badge tone={tone} label={t(label)} />
       </div>
       <p className="text-sm">{result.answer}</p>
+      <ReadAloud text={result.answer} what={question} />
       {result.status === 'needs_professional' && (
         <p className="mt-2 text-sm font-medium">{t('escalationLine')}</p>
       )}

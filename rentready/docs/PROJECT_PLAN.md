@@ -68,7 +68,7 @@ Legend: ⬜ todo · 🟨 doing · ✅ done · Est = focused hours
 
 ## Phase 8 – Language, a11y, PWA (Day 10) · Est 6h
 - 🟨 Hindi dictionary incl. rule text; reading-level toggle wired into prompts — reading level ✅ (prompts); Hindi deferred, English-only release (DECISIONS #50)
-- ⬜ Read-aloud; glossary popovers
+- ✅ Read-aloud; glossary popovers
 - ⬜ Full keyboard + screen-reader pass; fix every axe finding; 320 px and 200% zoom
 - ✅ `vite-plugin-pwa`, offline verification, update prompt
 

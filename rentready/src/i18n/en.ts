@@ -335,6 +335,50 @@ export const ui = {
   offlineReady: 'RentReady is ready to work offline.',
   dismiss: 'Dismiss',
 
+  // Info pages
+  'how.1':
+    'Answer up to 10 quick questions about the deal you were promised — rent, deposit, notice, who fixes what. Every question can be skipped.',
+  'how.2':
+    'Add your agreement: upload a PDF or Word file, paste the text, or use the sample. It is read here in your browser.',
+  'how.3':
+    'Offline checks run straight away on your device: a rule library for Indian rentals flags risky or one-sided clauses, with the clause that triggered each one.',
+  'how.4':
+    "With your own Gemini key, the agreement text and your answers are sent from your browser to Google's Gemini API. The model only reports what the agreement says; RentReady's code decides whether it matches what you were told, and checks every quote against the agreement before showing it.",
+  'how.5':
+    'You get what differs, what is missing, what is worth a closer look, a message you can send the owner, and a move-in checklist.',
+  'privacy.1': 'We have no server, no account and no database. RentReady is static files.',
+  'privacy.2':
+    "Your agreement is read in your browser. Its text is sent to Google's Gemini API only when you check it with your own key, and only for that request.",
+  'privacy.3':
+    'Your key stays in this tab\'s memory. If you tick "Remember for this tab", it is kept in this tab\'s session storage until the tab closes. It never reaches us, and is never put in links, downloads or messages.',
+  'privacy.4':
+    'We collect no analytics and set no cookies. Only your display preferences are saved on this device.',
+  'privacy.5':
+    "Google may process API requests under its own terms; free-tier usage may be used to improve Google's products. Avoid pasting anything you don't want shared, and remove names and phone numbers if you prefer.",
+  'privacy.6': '"Clear everything" in Settings removes all of it from this tab immediately.',
+  'disclaimer.1':
+    "RentReady is an educational tool. It does not create a lawyer–client relationship, may be incomplete or wrong, and does not know your state's rent control or tenancy rules in detail.",
+  'disclaimer.2':
+    'Rental law in India varies by state and changes over time. For money already paid, a dispute, or a clause you are unsure about, talk to a qualified advocate before you sign.',
+
+  // Glossary and read-aloud
+  glossaryTitle: 'Words explained',
+  'glossary.lockIn':
+    'A minimum period you must stay. Leaving earlier can cost you rent or part of your deposit, even if you give notice.',
+  'glossary.leaveLicence':
+    'A common form of rental agreement in India (especially Maharashtra). You get permission to live in the home; the owner keeps legal possession.',
+  'glossary.noticePeriod':
+    'How much warning, in writing, one side must give the other before ending the agreement.',
+  'glossary.deposit':
+    'Money you pay upfront that the owner holds and should return when you leave, minus any fair deductions.',
+  'glossary.stampDuty':
+    'A state tax paid on the agreement document. The rate and who pays it vary by state.',
+  'glossary.registration':
+    'Recording the agreement with the government sub-registrar. It makes the agreement much easier to rely on in a dispute.',
+  'glossary.inventory':
+    'A signed list of the furniture, fittings and their condition when you move in. It protects your deposit.',
+  readAloudLabel: 'Read aloud: {what}',
+
   // Settings
   readingLevelHint:
     'Changes how AI explanations are written. Simple uses short sentences and no jargon.',
