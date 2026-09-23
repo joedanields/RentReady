@@ -1,6 +1,7 @@
 /** Protection checklist — fixed list of 20 protections a fair agreement covers */
 
 import type { ProtectionId, GapRow, VerifiedQuote } from '../types.js';
+import { evidenceKey } from '../verify/verifyQuote.js';
 
 export interface ProtectionDef {
   id: ProtectionId;
@@ -154,7 +155,10 @@ export function buildGapRows(
 ): GapRow[] {
   return PROTECTIONS.map(protection => {
     const finding = modelFindings.find(f => f.id === protection.id);
-    const evidence = finding?.clauseId ? (verifiedQuotes.get(finding.clauseId) ?? null) : null;
+    const evidence =
+      finding?.clauseId && finding.quote
+        ? (verifiedQuotes.get(evidenceKey(finding.clauseId, finding.quote)) ?? null)
+        : null;
 
     return {
       id: protection.id,

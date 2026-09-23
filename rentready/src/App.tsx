@@ -156,7 +156,11 @@ export function App() {
         )}
         {screen === 'upload' && <Upload onAnalysed={() => go('report')} />}
         {screen === 'report' && (
-          <Report onNegotiate={() => go('negotiate')} onMoveIn={() => go('movein')} />
+          <Report
+            onNegotiate={() => go('negotiate')}
+            onMoveIn={() => go('movein')}
+            onAddAgreement={() => go('upload')}
+          />
         )}
         {screen === 'negotiate' && <Negotiate onBack={() => go('report')} />}
         {screen === 'movein' && <MoveIn onBack={() => go('report')} />}

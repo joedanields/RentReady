@@ -11,6 +11,7 @@ import type {
   Severity,
 } from '../types.js';
 import { normaliseAnswers, formatDays } from './normalise.js';
+import { evidenceKey } from '../verify/verifyQuote.js';
 
 /** Comparison result before quote verification */
 interface RawMatch {
@@ -536,7 +537,10 @@ export function buildMatchRows(
       continue;
 
     const finding = modelFindings.find(f => f.key === answerKey);
-    const evidence = finding?.clauseId ? (verifiedQuotes.get(finding.clauseId) ?? null) : null;
+    const evidence =
+      finding?.clauseId && finding.quote
+        ? (verifiedQuotes.get(evidenceKey(finding.clauseId, finding.quote)) ?? null)
+        : null;
 
     const raw = compareAnswer(
       answerKey,

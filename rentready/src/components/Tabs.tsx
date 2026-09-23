@@ -13,13 +13,20 @@ export function Tabs({
   tabs,
   activeId,
   onChange,
+  label,
+  idPrefix = 'tab',
   children,
 }: {
   tabs: TabDef[];
   activeId: string;
   onChange: (id: string) => void;
+  /** Accessible name of the tablist (translated by the caller). */
+  label: string;
+  /** Namespaces element ids so two tab sets can't collide. */
+  idPrefix?: string;
   children?: React.ReactNode;
 }) {
+  const tabDomId = (id: string) => `${idPrefix}-${id}`;
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const onKeyDown = (e: React.KeyboardEvent, index: number) => {
@@ -40,7 +47,7 @@ export function Tabs({
 
   return (
     <div className="tabs">
-      <div role="tablist" aria-label="Report sections" className="flex border-b border-border">
+      <div role="tablist" aria-label={label} className="flex border-b border-border">
         {tabs.map((tab, i) => (
           <button
             key={tab.id}
@@ -48,7 +55,7 @@ export function Tabs({
               tabRefs.current[tab.id] = el;
             }}
             role="tab"
-            id={tab.id}
+            id={tabDomId(tab.id)}
             aria-controls={tab.controlId}
             aria-selected={activeId === tab.id}
             tabIndex={activeId === tab.id ? 0 : -1}
@@ -68,7 +75,7 @@ export function Tabs({
       <div
         role="tabpanel"
         id={tabs.find(t => t.id === activeId)?.controlId}
-        aria-labelledby={activeId}
+        aria-labelledby={tabDomId(activeId)}
         tabIndex={0}
         className="pt-4 focus-visible:outline-none"
       >

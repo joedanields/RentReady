@@ -12,8 +12,8 @@ import { validateModelAnalysis } from './schemas.js';
 import { normaliseAnswers } from './interview/normalise.js';
 import { buildMatchRows } from './interview/compare.js';
 import { buildGapRows } from './rules/protections.js';
-import { runRules, buildDerived, type RuleContext } from './rules/rental.js';
-import { verifyQuote } from './verify/verifyQuote.js';
+import { runRules } from './rules/rental.js';
+import { verifyQuote, evidenceKey } from './verify/verifyQuote.js';
 import { LIMITS } from './limits.js';
 
 export interface AnalysisInput {
@@ -27,43 +27,40 @@ export interface AnalysisInput {
   localOnly?: boolean;
 }
 
-/** Verify all quotes from a model finding, keyed by clauseId (first hit wins, else null) */
+/**
+ * Verifies every finding's quote against the clause it cites, keyed by clause + quote.
+ * Unknown clause ids and over-long quotes get no entry, so they carry no evidence.
+ */
 export function verifyFindingQuotes(
   clauses: Clause[],
   findings: Array<{ clauseId: string | null; quote: string | null }>
 ): Map<string, VerifiedQuote | null> {
   const clauseMap = new Map(clauses.map(c => [c.id, c]));
   const verified = new Map<string, VerifiedQuote | null>();
-  const seen = new Set<string>();
-
-  for (const finding of findings) {
-    if (!finding.clauseId || !finding.quote) continue;
-    if (seen.has(finding.clauseId)) continue;
-    seen.add(finding.clauseId);
-    const clause = clauseMap.get(finding.clauseId);
-    if (!clause) {
-      verified.set(finding.clauseId, null); // unknown clauseId -> no evidence
+  for (const { clauseId, quote } of findings) {
+    if (!clauseId || !quote) continue;
+    const key = evidenceKey(clauseId, quote);
+    if (verified.has(key)) continue;
+    const clause = clauseMap.get(clauseId);
+    if (!clause || quote.length > LIMITS.MAX_QUOTE_LENGTH) {
+      verified.set(key, null);
       continue;
     }
-    if (finding.quote.length > LIMITS.MAX_QUOTE_LENGTH) continue;
-    verified.set(finding.clauseId, verifyQuote(clause.text, finding.quote, finding.clauseId));
+    verified.set(key, verifyQuote(clause.text, quote, clauseId));
   }
   return verified;
 }
 
-/** Demote any gap whose evidence didn't verify to 'unclear' */
+/**
+ * "Present" needs proof: a protection the model calls present without a verified (or close)
+ * quote is shown as unclear, never as covered (CLAUDE.md rule 4).
+ */
 export function demoteGapEvidence(gaps: GapRow[]): GapRow[] {
-  return gaps.map(g => {
-    if (
-      g.state === 'present' &&
-      g.evidence &&
-      g.evidence.status !== 'verified' &&
-      g.evidence.status !== 'fuzzy'
-    ) {
-      return { ...g, state: 'unclear' };
-    }
-    return g;
-  });
+  return gaps.map(g =>
+    g.state === 'present' && (g.evidence === null || g.evidence.status === 'unverified')
+      ? { ...g, state: 'unclear' }
+      : g
+  );
 }
 
 export function analyseDocument(input: AnalysisInput): AnalysisResult {
@@ -96,12 +93,13 @@ export function analyseDocument(input: AnalysisInput): AnalysisResult {
     protectionFindings = validated.protectionFindings;
   }
 
-  const verified = verifyFindingQuotes(input.clauses, matchFindings);
+  const verified = verifyFindingQuotes(input.clauses, [...matchFindings, ...protectionFindings]);
 
-  // Model reports, code judges
-  const matches: MatchRow[] = buildMatchRows(input.answers, matchFindings, verified);
+  // Model reports, code judges. Without a model read there is nothing to compare the promises
+  // against, so no match rows — "not covered" would be a claim nobody checked.
+  const matches: MatchRow[] = local ? [] : buildMatchRows(input.answers, matchFindings, verified);
 
-  // Build gaps from model findings (or all-unclear in local mode)
+  // Checklist from model findings, or all "unclear" (not yet checked) in local mode.
   const gaps = demoteGapEvidence(
     buildGapRows(
       local
@@ -117,26 +115,16 @@ export function analyseDocument(input: AnalysisInput): AnalysisResult {
     )
   );
 
-  // Rules: deterministic, offline
-  const normalised = normaliseAnswers(input.answers);
-  const ctx: RuleContext = {
+  // Rules: deterministic, offline, read from the agreement text.
+  const rules = runRules({
     clauses: input.clauses,
     matches,
     gaps,
-    interview: normalised,
-    derived: {
-      depositMonths: null,
-      monthlyRent: null,
-      lockInDays: null,
-      noticeTenantDays: null,
-      noticeLandlordDays: null,
-      durationDays: null,
-    },
-  };
-  const derived = buildDerived(ctx);
-  const rules = runRules({ ...ctx, derived });
+    interview: normaliseAnswers(input.answers),
+    aiChecked: !local,
+  });
 
-  return { overview, matches, gaps, rules };
+  return { mode: local ? 'local' : 'ai', overview, matches, gaps, rules };
 }
 
 import { PROTECTION_IDS } from './rules/protections.js';

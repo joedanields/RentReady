@@ -39,17 +39,32 @@ export interface AnalyseOptions {
   budgetUsed: number;
   budgetLimit: number;
   demo: boolean;
+  /** True only for the bundled sample: recorded responses describe that agreement and no other. */
+  isSample: boolean;
   onStage?: (stage: string) => void;
 }
 
 export async function runAnalysis(opts: AnalyseOptions): Promise<AnalysisResult> {
-  const { answers, clauses, apiKey, model, preferences, budgetUsed, budgetLimit, demo, onStage } =
-    opts;
+  const {
+    answers,
+    clauses,
+    apiKey,
+    model,
+    preferences,
+    budgetUsed,
+    budgetLimit,
+    demo,
+    isSample,
+    onStage,
+  } = opts;
 
-  if (!demo && !apiKey) {
-    throw createAppError('NO_KEY');
+  // No key, and nothing recorded for this document: the local report (rules only) is still
+  // genuinely useful, so give it instead of an error.
+  if (!(demo && isSample) && !apiKey) {
+    onStage?.('rules');
+    return analyseDocument({ answers, clauses, localOnly: true });
   }
-  if (!demo && budgetUsed >= budgetLimit) {
+  if (!(demo && isSample) && budgetUsed >= budgetLimit) {
     throw createAppError('BUDGET_EXHAUSTED');
   }
 
@@ -59,8 +74,8 @@ export async function runAnalysis(opts: AnalyseOptions): Promise<AnalysisResult>
     city: answers.city,
   };
 
-  // Demo mode: recorded response via the same pipeline
-  if (demo) {
+  // Demo mode on the sample: recorded response through the same validation and verification.
+  if (demo && isSample) {
     onStage?.('reading');
     await new Promise(r => setTimeout(r, 400));
 

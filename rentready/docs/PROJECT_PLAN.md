@@ -41,9 +41,9 @@ Legend: ⬜ todo · 🟨 doing · ✅ done · Est = focused hours
 **Done when:** sample and a real PDF both produce clauses with correct pages.
 
 ## Phase 4 – Local-only report (Day 5) · Est 6h
-- ⬜ Run rules + protection skeleton with **no AI**; render the "Worth a closer look" section and the checklist as Unclear
-- ⬜ Report shell with tabs, clause list, side-by-side viewer, `<mark>` highlighting
-- ⬜ Empty/loading/error states with live regions
+- ✅ Run rules + protection skeleton with **no AI**; render the "Worth a closer look" section and the checklist as Unclear
+- ✅ Report shell with tabs, clause list, side-by-side viewer, `<mark>` highlighting
+- ✅ Empty/loading/error states with live regions
 **Done when:** the app is genuinely useful offline, before any AI exists.
 
 ## Phase 5 – Gemini layer (Day 6–7) · Est 10h
@@ -126,3 +126,9 @@ Done: Intake guards (size before read, magic bytes + extension, pages, chars) wi
 Blocked: none (deploy still waiting on HUMAN_TASKS.md).
 Decisions: #30–34.
 Next: Phase 4 — local-only report: rules + protection skeleton with no AI (no key and not the sample → local report; recorded responses only for the sample).
+
+### Day 1 (cont.) – 2026-09-23 — Phase 4
+Done: Offline report. Rule engine reworked to read the agreement (extractors) instead of the interview, aware of whether the checklist was AI-checked, citing the clause behind each hit; several triggers fixed against LEGAL_RULES; evidence keyed by clause+quote; uncited "present" demoted. Report rebuilt: three collapsible sections, clause/page chips, "See original" region with <mark> from verified offsets, rule cards with severity word, questions, state-varies line and review date, searchable clause list, honest local-mode notice and empty states. No-key documents now get the local report instead of an error. Tests: 29 files (rules/extract 100%), 28 e2e incl. a report built with the network off and zero requests.
+Blocked: none (deploy still waiting on HUMAN_TASKS.md).
+Decisions: #35–41.
+Next: Phase 5 — Gemini layer: audit client/prompts/schemas against AI_PIPELINE, key panel (remember-for-tab), budget, translated AI errors, key-never-leaks tests.

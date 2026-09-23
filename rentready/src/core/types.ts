@@ -111,6 +111,8 @@ export interface AskResult {
 }
 
 export interface AnalysisResult {
+  /** 'local': rules only, no AI read — no match rows, checklist not checked. */
+  mode: 'local' | 'ai';
   overview: string;
   matches: MatchRow[];
   gaps: GapRow[];

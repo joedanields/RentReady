@@ -6,6 +6,7 @@ import {
   demoteGapEvidence,
 } from './analysis';
 import { LIMITS } from './limits';
+import { evidenceKey } from './verify/verifyQuote';
 import type { Clause, GapRow } from './types';
 
 const clause = (id: string, text: string): Clause => ({
@@ -43,29 +44,29 @@ const ANSWERS = {
 };
 
 describe('verifyFindingQuotes', () => {
-  it('verifies quotes against real clauses, first hit wins', () => {
+  it('verifies each quote separately, even two quotes from the same clause', () => {
+    const real = 'The monthly rent is Rs. 40,000';
+    const fake = 'irrelevant other quote not in the clause';
     const verified = verifyFindingQuotes(CLAUSES, [
-      { clauseId: 'c001', quote: 'The monthly rent is Rs. 40,000' },
-      { clauseId: 'c001', quote: 'irrelevant other quote' },
+      { clauseId: 'c001', quote: real },
+      { clauseId: 'c001', quote: fake },
+      { clauseId: 'c001', quote: real },
       { clauseId: null, quote: 'ignored' },
       { clauseId: 'c002', quote: null },
     ]);
-    expect(verified.get('c001')?.status).toBe('verified');
-    expect(verified.size).toBe(1);
+    expect(verified.get(evidenceKey('c001', real))?.status).toBe('verified');
+    expect(verified.get(evidenceKey('c001', fake))?.status).toBe('unverified');
+    expect(verified.size).toBe(2);
   });
 
-  it('maps unknown clause ids to null evidence', () => {
+  it('gives unknown clause ids and over-long quotes no evidence', () => {
+    const long = 'x'.repeat(LIMITS.MAX_QUOTE_LENGTH + 1);
     const verified = verifyFindingQuotes(CLAUSES, [
       { clauseId: 'c999', quote: 'some long enough quote text here' },
+      { clauseId: 'c001', quote: long },
     ]);
-    expect(verified.get('c999')).toBeNull();
-  });
-
-  it('skips quotes over the length limit entirely', () => {
-    const verified = verifyFindingQuotes(CLAUSES, [
-      { clauseId: 'c001', quote: 'x'.repeat(LIMITS.MAX_QUOTE_LENGTH + 1) },
-    ]);
-    expect(verified.has('c001')).toBe(false);
+    expect(verified.get(evidenceKey('c999', 'some long enough quote text here'))).toBeNull();
+    expect(verified.get(evidenceKey('c001', long))).toBeNull();
   });
 });
 
@@ -91,7 +92,11 @@ describe('demoteGapEvidence', () => {
     expect(fuzzy[0]!.state).toBe('present');
   });
 
-  it('keeps verified evidence, absent/unclear states and missing evidence', () => {
+  it('demotes "present" with no evidence at all — present needs proof', () => {
+    expect(demoteGapEvidence([{ ...base, evidence: null }])[0]!.state).toBe('unclear');
+  });
+
+  it('keeps verified evidence and absent/unclear states', () => {
     expect(demoteGapEvidence([{ ...base, state: 'present' }])[0]!.state).toBe('present');
     expect(demoteGapEvidence([{ ...base, state: 'absent' }])[0]!.state).toBe('absent');
     expect(demoteGapEvidence([{ ...base, state: 'unclear', evidence: null }])[0]!.state).toBe(
@@ -101,15 +106,20 @@ describe('demoteGapEvidence', () => {
 });
 
 describe('analyseDocument (local only)', () => {
-  it('produces not_covered matches, all-gaps-unclear and offline rules', () => {
+  it('makes no match claims without an AI read, leaves the checklist unchecked, runs rules', () => {
     const result = analyseLocalOnly(ANSWERS, CLAUSES);
+    expect(result.mode).toBe('local');
     expect(result.overview).toBe('');
-    const rent = result.matches.find(m => m.key === 'monthlyRent')!;
-    expect(rent.verdict).toBe('not_covered');
-    expect(result.matches.length).toBeGreaterThanOrEqual(8);
+    // Saying "not covered" here would be a claim nobody checked.
+    expect(result.matches).toEqual([]);
     expect(result.gaps).toHaveLength(20);
     expect(result.gaps.every(g => g.state === 'unclear')).toBe(true);
-    expect(Array.isArray(result.rules)).toBe(true);
+    // The refund deadline is written in c002, so the offline text check stays quiet.
+    expect(result.rules.map(r => r.ruleId)).not.toContain('IN-RENT-DEPOSIT-NO-TIMELINE');
+  });
+
+  it('treats a missing model response as local mode', () => {
+    expect(analyseDocument({ answers: ANSWERS, clauses: CLAUSES }).mode).toBe('local');
   });
 });
 
@@ -156,11 +166,13 @@ describe('analyseDocument (with model response)', () => {
 
   it('keeps findings for real clauses, discards ghost clause ids, uses overview', () => {
     const result = analyseDocument({ answers: ANSWERS, clauses: CLAUSES, modelResponse });
+    expect(result.mode).toBe('ai');
     expect(result.overview).toBe('Rent matches, deposit unclear.');
     const rent = result.matches.find(m => m.key === 'monthlyRent')!;
     expect(rent.verdict).toBe('matches');
     const timeline = result.gaps.find(g => g.id === 'DEPOSIT_REFUND_TIMELINE')!;
     expect(timeline.state).toBe('present');
+    expect(timeline.evidence?.status).toBe('verified');
     expect(result.gaps.find(g => g.id === 'ENTRY_NOTICE')!.state).toBe('unclear');
   });
 

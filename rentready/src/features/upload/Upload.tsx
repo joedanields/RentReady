@@ -99,13 +99,17 @@ export function Upload({ onAnalysed }: { onAnalysed: () => void }) {
         budgetUsed: state.budget.used,
         budgetLimit: state.budget.limit,
         demo: demo.active,
+        isSample: doc.fileType === 'sample',
         onStage: s => setStage(s),
       });
       dispatch({
         type: 'SET_ANALYSIS',
         analysis: { result, loading: false, error: null, stage: '' },
       });
-      if (!demo.active) dispatch({ type: 'INCREMENT_BUDGET' });
+      // Only a real Gemini call spends the user's quota.
+      if (result.mode === 'ai' && !(demo.active && doc.fileType === 'sample')) {
+        dispatch({ type: 'INCREMENT_BUDGET' });
+      }
       onAnalysed();
     } catch (e) {
       const err = e as { code?: string; message?: string };
