@@ -65,9 +65,9 @@ export function AskPanel({ onShowClause }: { onShowClause: (clauseId: string) =>
         budgetLimit: state.budget.limit,
         demo: state.demo,
         isSample,
+        onCall: () => dispatch({ type: 'INCREMENT_BUDGET' }),
       });
       dispatch({ type: 'ADD_QA', question: text, result });
-      if (state.key.key) dispatch({ type: 'INCREMENT_BUDGET' });
       setQuestion('');
     } catch (e) {
       const code = (e as { code?: string }).code;

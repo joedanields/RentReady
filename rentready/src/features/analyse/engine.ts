@@ -54,6 +54,41 @@ export interface AnalyseOptions {
   /** True only for the bundled sample: recorded responses describe that agreement and no other. */
   isSample: boolean;
   onStage?: (stage: string) => void;
+  /** Called once per real Gemini request (not for cached or recorded answers): the budget. */
+  onCall?: () => void;
+}
+
+/**
+ * Results of real Gemini calls, keyed by a hash of the exact request (model + system prompt +
+ * user prompt, which contain the settings, answers and agreement). Asking the same thing twice
+ * — re-running a report, re-asking a question — costs no second call or quota. Memory only,
+ * bounded, cleared with the tab.
+ */
+const aiCache = new Map<string, unknown>();
+const AI_CACHE_LIMIT = 16;
+
+/** FNV-1a: a fast, dependency-free hash; collisions are irrelevant at this cache size. */
+function hashKey(parts: string[]): string {
+  let h = 0x811c9dc5;
+  for (const ch of parts.join('\u0000')) {
+    h ^= ch.charCodeAt(0);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(36);
+}
+
+async function cached<T>(parts: string[], compute: () => Promise<T>): Promise<T> {
+  const key = hashKey(parts);
+  if (aiCache.has(key)) return aiCache.get(key) as T;
+  const value = await compute();
+  aiCache.set(key, value);
+  if (aiCache.size > AI_CACHE_LIMIT) aiCache.delete(aiCache.keys().next().value!);
+  return value;
+}
+
+/** Test hook: start from an empty cache. */
+export function clearAiCache(): void {
+  aiCache.clear();
 }
 
 export async function runAnalysis(opts: AnalyseOptions): Promise<AnalysisResult> {
@@ -106,8 +141,27 @@ export async function runAnalysis(opts: AnalyseOptions): Promise<AnalysisResult>
 
   onStage?.('calling');
   if (!apiKey) throw createAppError('NO_KEY');
+  try {
+    return await cached([model, system, userPrompt], () =>
+      analyseWithGemini({ ...opts, apiKey }, system, userPrompt)
+    );
+  } catch (e) {
+    // Offline, too slow or Gemini busy: the rules still run locally, so show that report.
+    const fallback = (e as { fallback?: AnalysisResult['fallback'] }).fallback;
+    if (fallback) return { ...analyseDocument({ answers, clauses, localOnly: true }), fallback };
+    throw e;
+  }
+}
+
+async function analyseWithGemini(
+  opts: AnalyseOptions & { apiKey: string },
+  system: string,
+  userPrompt: string
+): Promise<AnalysisResult> {
+  const { answers, clauses, apiKey, model, onStage } = opts;
   let text: string;
   try {
+    opts.onCall?.();
     ({ text } = await generateContent({
       model,
       apiKey,
@@ -118,10 +172,11 @@ export async function runAnalysis(opts: AnalyseOptions): Promise<AnalysisResult>
       maxOutputTokens: 8192,
     }));
   } catch (e) {
-    // Offline or too slow: the rules still run locally, so show that report instead of nothing.
+    // Offline, too slow or busy: tag the error so runAnalysis shows the offline report. Throwing
+    // (rather than returning) keeps this failure out of the AI cache.
     const code = (e as { code?: string }).code;
     if (code === 'NETWORK' || code === 'TIMEOUT' || code === 'SERVICE_BUSY') {
-      return { ...analyseDocument({ answers, clauses, localOnly: true }), fallback: code };
+      throw Object.assign(new Error(code), { fallback: code });
     }
     throw e;
   }
@@ -164,6 +219,8 @@ export interface AskOptions {
   budgetLimit: number;
   demo: boolean;
   isSample: boolean;
+  /** Called once per real Gemini request (not for cached or recorded answers). */
+  onCall?: () => void;
 }
 
 /** Normalises a question for matching against the recorded demo questions. */
@@ -192,22 +249,27 @@ export async function runAsk(opts: AskOptions): Promise<AskResult> {
   if (!apiKey) throw createAppError('NO_KEY');
   if (opts.budgetUsed >= opts.budgetLimit) throw createAppError('BUDGET_EXHAUSTED');
 
-  const { text } = await generateContent({
-    model,
-    apiKey,
-    system: buildSystemPreamble({
-      language: preferences.language,
-      readingLevel: preferences.readingLevel,
-      city,
-    }),
-    userPrompt: buildAskUserPrompt(question, clauses),
-    responseSchema: ASK_SCHEMA,
-    temperature: 0.2,
-    maxOutputTokens: LIMITS.MAX_SMALL_CALL_TOKENS,
+  const system = buildSystemPreamble({
+    language: preferences.language,
+    readingLevel: preferences.readingLevel,
+    city,
   });
-  try {
-    return processAskResponse({ clauses, modelResponse: JSON.parse(repairJson(text)) });
-  } catch {
-    throw createAppError('MODEL_INVALID_OUTPUT');
-  }
+  const userPrompt = buildAskUserPrompt(question, clauses);
+  return cached([model, system, userPrompt], async () => {
+    opts.onCall?.();
+    const { text } = await generateContent({
+      model,
+      apiKey,
+      system,
+      userPrompt,
+      responseSchema: ASK_SCHEMA,
+      temperature: 0.2,
+      maxOutputTokens: LIMITS.MAX_SMALL_CALL_TOKENS,
+    });
+    try {
+      return processAskResponse({ clauses, modelResponse: JSON.parse(repairJson(text)) });
+    } catch {
+      throw createAppError('MODEL_INVALID_OUTPUT');
+    }
+  });
 }

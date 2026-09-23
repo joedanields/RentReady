@@ -48,11 +48,19 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // The PDF and Word readers are large and only needed by someone who uploads a file: keep
+        // them out of the install-time precache and cache them the first time they are used.
+        globIgnores: ['**/pdfjs-*.js', '**/mammoth-*.js'],
         runtimeCaching: [
           {
             // Never cache Gemini responses — they are per-user content
             urlPattern: /^https:\/\/generativelanguage\.googleapis\.com\/.*/i,
             handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: /\/assets\/(pdfjs|mammoth|pdf\.worker)-[\w-]+\.m?js$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'rentready-parsers', expiration: { maxEntries: 8 } },
           },
         ],
       },
@@ -67,6 +75,16 @@ export default defineConfig({
     target: 'es2022',
     minify: 'esbuild',
     cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        // Stable names for the heavy, lazily loaded parsers so the service worker can skip them.
+        manualChunks(id) {
+          if (id.includes('node_modules/pdfjs-dist')) return 'pdfjs';
+          if (id.includes('node_modules/mammoth')) return 'mammoth';
+          return undefined;
+        },
+      },
+    },
   },
   server: {
     port: 5173,

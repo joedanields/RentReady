@@ -96,9 +96,10 @@ Run these from the `rentready/` folder:
 | Unit + component tests | **429** passing (Vitest + Testing Library, axe on every interview step and report state) |
 | End-to-end tests | **22 journeys × 2 viewports = 44** passing (Playwright + axe, desktop and Pixel 7) |
 | Coverage, `src/core` | 99.7% lines · 97.6% branches · **100%** for `verify/`, `rules/`, `interview/` (enforced in CI) |
-| Initial JS | **135.8 KB gzip** (budget 200 KB); pdf.js and mammoth load only when a file is chosen |
+| Initial JS | **100.8 KB gzip** (budget 200 KB): only Home loads first; other screens load when opened and are prefetched when idle; pdf.js and mammoth load only when a file is chosen |
+| Offline precache | **476 KB** on first visit (the PDF/Word readers are cached only once used) |
 | Offline | Interview → paste → full rule report with **zero network requests** (`e2e/report.spec.ts`) |
-| AI calls per report | 1 (analysis); Ask and message polish on demand; session budget of 12 |
+| AI calls per report | 1 (analysis); Ask and message polish on demand; identical requests are answered from an in-memory cache; session budget of 12 |
 | Production dependencies with known vulnerabilities | 0 (`npm audit --omit=dev`) |
 | Golden set, offline | 5 agreements · rule recall **100%** (23/23) · rule precision **100%** (23/23) — enforced in CI |
 | Golden set, live (partial) | First run hit free-tier limits after one agreement: quote verification 13/13, latency 14.4 s. Full run: put `GEMINI_API_KEY=...` in `rentready/.env.local` (gitignored), then `npm run eval` |
@@ -122,7 +123,7 @@ Run these from the `rentready/` folder:
 | Problem statement alignment | This README, [`docs/PRD.md`](rentready/docs/PRD.md), [`docs/INTERVIEW_SPEC.md`](rentready/docs/INTERVIEW_SPEC.md); the interview → report → message flow |
 | Code quality | Strict TS (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), pure `src/core` domain layer (no React, runs in Node for the eval script) |
 | Security | [`docs/SECURITY.md`](rentready/docs/SECURITY.md), the "Claims you can check" table above |
-| Efficiency | Offline rules, one AI call per report, lazy parsers, 135.8 KB initial JS |
+| Efficiency | Offline rules, one AI call per report, lazy parsers, 100.8 KB initial JS |
 | Testing | [`docs/TESTING.md`](rentready/docs/TESTING.md), `npm run test:coverage`, `npm run test:e2e` |
 | Accessibility | [`docs/ACCESSIBILITY.md`](rentready/docs/ACCESSIBILITY.md); axe in component and E2E tests; keyboard-only interview journey |
 

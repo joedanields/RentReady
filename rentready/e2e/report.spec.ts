@@ -17,6 +17,8 @@ test('with the network off, pasted text still produces a useful local report', a
 }) => {
   await page.goto('/#/upload');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Add your agreement');
+  // Let the idle prefetch of the other screens finish, as it would for any real visitor.
+  await page.waitForLoadState('networkidle');
 
   const requests: string[] = [];
   page.on('request', r => {

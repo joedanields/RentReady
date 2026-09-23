@@ -1,22 +1,46 @@
 /** App shell — skip link, header, main, footer with consistent-help links */
 
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useApp } from './state/AppProvider';
 import { t } from './i18n';
 import { Home } from './features/home/Home';
-import { Interview } from './features/interview/Interview';
-import { Upload } from './features/upload/Upload';
-import { Report } from './features/report/Report';
-import { Negotiate } from './features/negotiate/Negotiate';
-import { MoveIn } from './features/movein/MoveIn';
-import { Settings } from './features/settings/Settings';
 import { ForgetKeyButton } from './features/key/KeyPanel';
 import { UpdatePrompt } from './components/UpdatePrompt';
-import { HowItWorks } from './features/info/HowItWorks';
-import { Privacy } from './features/info/Privacy';
-import { Disclaimer } from './features/info/Disclaimer';
 import { useDemoMode } from './features/analyse/demo';
-import { SAMPLE_DEMO_INTERVIEW_INPUT } from './sample/sampleData';
+import type { InterviewAnswers } from './core/types';
+
+// Only Home ships in the first download; every other screen is its own chunk. Once the page is
+// idle they are fetched in the background (see prefetchScreens), so the first paint is fast
+// and the app still works if the connection drops before the service worker takes over.
+const screens = {
+  Interview: () => import('./features/interview/Interview').then(m => ({ default: m.Interview })),
+  Upload: () => import('./features/upload/Upload').then(m => ({ default: m.Upload })),
+  Report: () => import('./features/report/Report').then(m => ({ default: m.Report })),
+  Negotiate: () => import('./features/negotiate/Negotiate').then(m => ({ default: m.Negotiate })),
+  MoveIn: () => import('./features/movein/MoveIn').then(m => ({ default: m.MoveIn })),
+  Settings: () => import('./features/settings/Settings').then(m => ({ default: m.Settings })),
+  HowItWorks: () => import('./features/info/HowItWorks').then(m => ({ default: m.HowItWorks })),
+  Privacy: () => import('./features/info/Privacy').then(m => ({ default: m.Privacy })),
+  Disclaimer: () => import('./features/info/Disclaimer').then(m => ({ default: m.Disclaimer })),
+};
+const Interview = lazy(screens.Interview);
+const Upload = lazy(screens.Upload);
+const Report = lazy(screens.Report);
+const Negotiate = lazy(screens.Negotiate);
+const MoveIn = lazy(screens.MoveIn);
+const Settings = lazy(screens.Settings);
+const HowItWorks = lazy(screens.HowItWorks);
+const Privacy = lazy(screens.Privacy);
+const Disclaimer = lazy(screens.Disclaimer);
+
+/** Warms every screen chunk when the browser is idle (the PDF/Word readers are not included). */
+export function prefetchScreens(): void {
+  const run = () => {
+    for (const load of Object.values(screens)) void load().catch(() => undefined);
+  };
+  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(run);
+  else setTimeout(run, 1500);
+}
 
 const SCREENS = [
   'home',
@@ -43,6 +67,8 @@ export function App() {
   // Honour the hash on first load too, so a refresh or deep link keeps the user where they were.
   const [screen, setScreen] = useState<Screen>(parseHash);
   const demo = useDemoMode();
+
+  useEffect(prefetchScreens, []);
 
   useEffect(() => {
     const onHash = () => setScreen(parseHash());
@@ -104,72 +130,48 @@ export function App() {
             onStart={() => go('interview')}
             onDemo={() => {
               demo.use();
-              dispatch({
-                type: 'SET_INTERVIEW_ANSWER',
-                key: 'city',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.city ?? '',
+              // The sample's interview answers load with the sample, not in the first download.
+              void import('./sample/sampleData').then(({ SAMPLE_DEMO_INTERVIEW_INPUT }) => {
+                const answers: Partial<InterviewAnswers> = SAMPLE_DEMO_INTERVIEW_INPUT;
+                for (const [key, value] of Object.entries(answers)) {
+                  if (value !== null && value !== undefined) {
+                    dispatch({
+                      type: 'SET_INTERVIEW_ANSWER',
+                      key: key as keyof InterviewAnswers,
+                      value,
+                    });
+                  }
+                }
+                go('upload');
               });
-              dispatch({
-                type: 'SET_INTERVIEW_ANSWER',
-                key: 'monthlyRent',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.monthlyRent ?? '',
-              });
-              dispatch({
-                type: 'SET_INTERVIEW_ANSWER',
-                key: 'deposit',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.deposit ?? '',
-              });
-              dispatch({
-                type: 'SET_INTERVIEW_ANSWER',
-                key: 'duration',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.duration ?? '',
-              });
-              dispatch({
-                type: 'SET_INTERVIEW_ANSWER',
-                key: 'lockIn',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.lockIn ?? '',
-              });
-              dispatch({
-                type: 'SET_INTERVIEW_ANSWER',
-                key: 'noticePeriod',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.noticePeriod ?? '',
-              });
-              dispatch({
-                type: 'SET_INTERVIEW_ANSWER',
-                key: 'maintenance',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.maintenance ?? '',
-              });
-              dispatch({
-                type: 'SET_INTERVIEW_ANSWER',
-                key: 'repairs',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.repairs ?? '',
-              });
-              dispatch({
-                type: 'SET_INTERVIEW_ANSWER',
-                key: 'increase',
-                value: SAMPLE_DEMO_INTERVIEW_INPUT.increase ?? '',
-              });
-              go('upload');
             }}
           />
         )}
-        {screen === 'interview' && (
-          <Interview onDone={() => go('upload')} onBack={() => go('home')} />
-        )}
-        {screen === 'upload' && <Upload onAnalysed={() => go('report')} />}
-        {screen === 'report' && (
-          <Report
-            onNegotiate={() => go('negotiate')}
-            onMoveIn={() => go('movein')}
-            onAddAgreement={() => go('upload')}
-          />
-        )}
-        {screen === 'negotiate' && <Negotiate onBack={() => go('report')} />}
-        {screen === 'movein' && <MoveIn onBack={() => go('report')} />}
-        {screen === 'settings' && <Settings onReset={() => go('home')} />}
-        {screen === 'help' && <HowItWorks />}
-        {screen === 'privacy' && <Privacy />}
-        {screen === 'disclaimer' && <Disclaimer />}
+        <Suspense
+          fallback={
+            <p role="status" className="text-muted">
+              {t('loading')}
+            </p>
+          }
+        >
+          {screen === 'interview' && (
+            <Interview onDone={() => go('upload')} onBack={() => go('home')} />
+          )}
+          {screen === 'upload' && <Upload onAnalysed={() => go('report')} />}
+          {screen === 'report' && (
+            <Report
+              onNegotiate={() => go('negotiate')}
+              onMoveIn={() => go('movein')}
+              onAddAgreement={() => go('upload')}
+            />
+          )}
+          {screen === 'negotiate' && <Negotiate onBack={() => go('report')} />}
+          {screen === 'movein' && <MoveIn onBack={() => go('report')} />}
+          {screen === 'settings' && <Settings onReset={() => go('home')} />}
+          {screen === 'help' && <HowItWorks />}
+          {screen === 'privacy' && <Privacy />}
+          {screen === 'disclaimer' && <Disclaimer />}
+        </Suspense>
       </main>
 
       <footer className="border-t border-border bg-surface">

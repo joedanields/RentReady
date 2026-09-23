@@ -18,6 +18,7 @@ export const ui = {
   privacy: 'Privacy',
   disclaimer: 'Disclaimer',
   skipLink: 'Skip to content',
+  loading: 'Loading…',
   navPrimary: 'Main menu',
   navFooter: 'Help and legal',
   back: 'Back',

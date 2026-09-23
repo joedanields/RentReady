@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { runAnalysis, parseSampleAgreement, type AnalyseOptions } from './engine';
+import {
+  clearAiCache,
+  runAnalysis,
+  runAsk,
+  parseSampleAgreement,
+  type AnalyseOptions,
+} from './engine';
 import { SAMPLE_ANALYSIS_RESPONSE, SAMPLE_DEMO_INTERVIEW_INPUT } from '../../sample/sampleData';
 import { fakeKey } from '../../../tests/fakeKey';
 import { aiErrorMessage } from './aiError';
@@ -30,6 +36,7 @@ const geminiReply = (payload: unknown) =>
   );
 
 afterEach(() => {
+  clearAiCache();
   vi.unstubAllGlobals();
   vi.useRealTimers();
 });
@@ -76,6 +83,71 @@ describe('runAnalysis routing', () => {
     const result = await pending;
     expect(result.mode).toBe('local');
     expect(result.fallback).toBe('NETWORK');
+  });
+
+  it('answers a repeated request from memory: no second call, budget counted once', async () => {
+    const fetch = vi.fn(async () => geminiReply(SAMPLE_ANALYSIS_RESPONSE));
+    vi.stubGlobal('fetch', fetch);
+    const onCall = vi.fn();
+    const first = await runAnalysis(opts({ apiKey: KEY, onCall }));
+    const second = await runAnalysis(opts({ apiKey: KEY, onCall }));
+    expect(second).toEqual(first);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(onCall).toHaveBeenCalledTimes(1);
+    // A different answer set is a different request.
+    await runAnalysis(
+      opts({
+        apiKey: KEY,
+        onCall,
+        answers: { ...SAMPLE_DEMO_INTERVIEW_INPUT, deposit: '3 months' },
+      })
+    );
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('caches Ask answers the same way', async () => {
+    const reply = {
+      status: 'not_in_document',
+      answer: 'No.',
+      citations: [],
+      missingInfo: [],
+      suggestedQuestions: [],
+    };
+    const fetch = vi.fn(async () => geminiReply(reply));
+    vi.stubGlobal('fetch', fetch);
+    const ask = () =>
+      runAsk({
+        question: 'Can I keep a cat?',
+        clauses: sample.clauses,
+        apiKey: KEY,
+        model: 'm',
+        preferences: { language: 'en', readingLevel: 'standard', theme: 'system' },
+        city: null,
+        budgetUsed: 0,
+        budgetLimit: 12,
+        demo: false,
+        isSample: false,
+      });
+    expect((await ask()).status).toBe('not_in_document');
+    await ask();
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not cache a failed call: offline now, answered later', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.reject(new TypeError('Failed to fetch')))
+    );
+    vi.useFakeTimers();
+    const pending = runAnalysis(opts({ apiKey: KEY }));
+    await vi.runAllTimersAsync();
+    expect((await pending).mode).toBe('local');
+    vi.useRealTimers();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => geminiReply(SAMPLE_ANALYSIS_RESPONSE))
+    );
+    expect((await runAnalysis(opts({ apiKey: KEY }))).mode).toBe('ai');
   });
 
   it('refuses when the session budget is used up, without calling Gemini', async () => {

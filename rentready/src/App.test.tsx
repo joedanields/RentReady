@@ -61,10 +61,10 @@ describe('App shell', () => {
     expect(within(header).queryByRole('button', { name: t('forgetKey') })).toBeNull();
   });
 
-  it('opens the screen named in the hash on first load (refresh or deep link)', () => {
+  it('opens the screen named in the hash on first load (refresh or deep link)', async () => {
     window.location.hash = '#/interview';
     renderApp();
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(
       'Which city is the place in?'
     );
   });
