@@ -23,10 +23,10 @@ export function Button({
         'min-h-[44px] px-4',
         size === 'sm' && 'text-sm',
         size === 'lg' && 'text-lg px-6',
-        variant === 'primary' && 'bg-primary text-white hover:bg-primary-dark',
+        variant === 'primary' && 'bg-primary text-on-primary hover:bg-primary-dark',
         variant === 'secondary' && 'bg-surface text-ink border border-border hover:bg-gray-50',
         variant === 'ghost' && 'bg-transparent text-primary hover:bg-green-50',
-        variant === 'danger' && 'bg-red-600 text-white hover:bg-red-700',
+        variant === 'danger' && 'bg-danger text-on-primary hover:bg-danger-dark',
         className
       )}
       {...props}

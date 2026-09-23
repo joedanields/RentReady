@@ -24,6 +24,9 @@ import {
   savePrefs,
 } from './storage.js';
 
+/** Flip to false once src/i18n/hi.ts covers every key. */
+const ENGLISH_ONLY = true;
+
 type AppContextValue = {
   state: AppState;
   dispatch: Dispatch<AppAction>;
@@ -38,7 +41,9 @@ export function initState(base: AppState, search: string): AppState {
   const remembered = loadRememberedKey();
   return {
     ...base,
-    preferences: url.lang ? { ...prefs, language: url.lang } : prefs,
+    // English-only release: the Hindi dictionary is incomplete, so a saved preference or
+    // ?lang=hi must not switch the UI into a half-translated state (DECISIONS #50).
+    preferences: { ...prefs, language: ENGLISH_ONLY ? 'en' : (url.lang ?? prefs.language) },
     demo: base.demo || url.demo || loadDemoFlag(),
     key: remembered ? { ...base.key, key: remembered, remember: true } : base.key,
   };
@@ -60,6 +65,19 @@ export function AppProvider({
   if (getLang() !== state.preferences.language) setLang(state.preferences.language);
 
   useEffect(() => savePrefs(state.preferences), [state.preferences]);
+
+  // Theme: explicit light/dark, or follow the OS (and its changes) for "system".
+  const theme = state.preferences.theme;
+  useEffect(() => {
+    const media = window.matchMedia?.('(prefers-color-scheme: dark)');
+    const apply = () => {
+      const dark = theme === 'dark' || (theme === 'system' && media?.matches === true);
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    };
+    apply();
+    media?.addEventListener?.('change', apply);
+    return () => media?.removeEventListener?.('change', apply);
+  }, [theme]);
   useEffect(() => saveDemoFlag(state.demo), [state.demo]);
   useEffect(
     () => saveRememberedKey(state.key.key, state.key.remember),

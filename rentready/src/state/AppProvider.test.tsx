@@ -15,10 +15,10 @@ afterEach(() => {
 });
 
 describe('initState', () => {
-  it('lets ?lang= and ?demo= override saved preferences', () => {
+  it('stays in English for this release, and lets ?demo= turn on demo mode', () => {
     localStorage.setItem(PREFS_KEY, JSON.stringify({ language: 'en', theme: 'dark' }));
     const s = initState(INITIAL_STATE, '?lang=hi&demo=1');
-    expect(s.preferences).toEqual({ language: 'hi', readingLevel: 'standard', theme: 'dark' });
+    expect(s.preferences).toEqual({ language: 'en', readingLevel: 'standard', theme: 'dark' });
     expect(s.demo).toBe(true);
   });
 

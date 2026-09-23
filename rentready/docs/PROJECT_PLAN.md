@@ -67,10 +67,10 @@ Legend: ⬜ todo · 🟨 doing · ✅ done · Est = focused hours
 **Done when:** a judge can leave the demo holding a message and a checklist.
 
 ## Phase 8 – Language, a11y, PWA (Day 10) · Est 6h
-- ⬜ Hindi dictionary incl. rule text; reading-level toggle wired into prompts
+- 🟨 Hindi dictionary incl. rule text; reading-level toggle wired into prompts — reading level ✅ (prompts); Hindi deferred, English-only release (DECISIONS #50)
 - ⬜ Read-aloud; glossary popovers
 - ⬜ Full keyboard + screen-reader pass; fix every axe finding; 320 px and 200% zoom
-- ⬜ `vite-plugin-pwa`, offline verification, update prompt
+- ✅ `vite-plugin-pwa`, offline verification, update prompt
 
 ## Phase 9 – Quality & eval (Day 11) · Est 6h
 - ⬜ Golden set (5 agreements + expected.json); `scripts/eval.ts`; metrics into README

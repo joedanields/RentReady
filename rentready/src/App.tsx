@@ -11,6 +11,7 @@ import { Negotiate } from './features/negotiate/Negotiate';
 import { MoveIn } from './features/movein/MoveIn';
 import { Settings } from './features/settings/Settings';
 import { ForgetKeyButton } from './features/key/KeyPanel';
+import { UpdatePrompt } from './components/UpdatePrompt';
 import { HowItWorks } from './features/info/HowItWorks';
 import { Privacy } from './features/info/Privacy';
 import { Disclaimer } from './features/info/Disclaimer';
@@ -62,13 +63,14 @@ export function App() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <UpdatePrompt />
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-primary focus:px-4 focus:py-2 focus:text-white"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-primary focus:px-4 focus:py-2 focus:text-on-primary"
       >
         {t('skipLink')}
       </a>
-      <header className="border-b border-border bg-white">
+      <header className="border-b border-border bg-surface">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
           <button
             type="button"
@@ -170,7 +172,7 @@ export function App() {
         {screen === 'disclaimer' && <Disclaimer />}
       </main>
 
-      <footer className="border-t border-border bg-white">
+      <footer className="border-t border-border bg-surface">
         <div className="mx-auto max-w-3xl px-4 py-4 text-center text-sm text-muted">
           <p className="mb-2">{t('infoNotLegalAdvice')}</p>
           <nav aria-label={t('navFooter')} className="flex justify-center gap-4">

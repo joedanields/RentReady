@@ -326,6 +326,24 @@ export const ui = {
 
   checklistProgress: '{done} of {total} checked',
 
+  updateAvailable: 'A new version of RentReady is available.',
+  updateReload: 'Reload',
+  updateLater: 'Not now',
+  offlineReady: 'RentReady is ready to work offline.',
+  dismiss: 'Dismiss',
+
+  // Settings
+  readingLevelHint:
+    'Changes how AI explanations are written. Simple uses short sentences and no jargon.',
+  themeHint: 'System follows your device setting.',
+  clearEverythingHint:
+    'Removes your answers, the agreement, results, your key and saved preferences from this tab, then returns to the start.',
+  clearConfirmTitle: 'Clear everything?',
+  clearConfirmBody:
+    "This can't be undone. Your agreement and answers are only stored here, so they will be gone.",
+  cancel: 'Cancel',
+  cleared: 'Everything was cleared.',
+
   // Negotiate
   negotiateIntro: 'Pick what to raise. We draft a message you can edit before sending.',
   negotiateEmpty: 'Nothing to raise yet. Check an agreement first.',

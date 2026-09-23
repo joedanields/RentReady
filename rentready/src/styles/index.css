@@ -10,6 +10,58 @@
   --color-differs: #b42318;
   --color-notcovered: #b54708;
   --color-matches: #067647;
+  --color-on-primary: #ffffff;
+  --color-danger: #b42318;
+  --color-danger-dark: #912018;
+}
+
+/*
+ * Dark theme. Tailwind v4 compiles every colour utility to a CSS variable, so re-pointing the
+ * palette here themes the whole app. AppProvider sets data-theme from the preference, resolving
+ * "system" with prefers-color-scheme. Text pairs keep ≥ 4.5:1 contrast (checked by axe in E2E).
+ */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-primary: #4cc38a;
+  --color-primary-dark: #6fd3a2;
+  --color-on-primary: #0d1117;
+  --color-ink: #e6edf3;
+  --color-muted: #a4b0bd;
+  --color-surface: #0d1117;
+  --color-border: #3a434e;
+  --color-differs: #ff8a80;
+  --color-notcovered: #f5b454;
+  --color-matches: #56d38f;
+  --color-danger: #ff8a80;
+  --color-danger-dark: #ffb4ab;
+  --color-gray-50: #161b22;
+  --color-gray-100: #1f262e;
+  --color-gray-200: #2d353f;
+  --color-gray-300: #3a434e;
+  --color-gray-600: #b8c2cc;
+  --color-gray-700: #cdd5dd;
+  --color-green-50: #10261c;
+  --color-green-100: #143324;
+  --color-green-300: #2f6b4d;
+  --color-green-800: #8fe3b6;
+  --color-green-900: #b5f0cf;
+  --color-amber-50: #2a1f0c;
+  --color-amber-100: #3a2a0e;
+  --color-amber-300: #7a5a1c;
+  --color-amber-900: #f5cf88;
+  --color-red-50: #2d1414;
+  --color-red-100: #3b1818;
+  --color-red-200: #5c2424;
+  --color-red-300: #7a2e2e;
+  --color-red-700: #ff9c94;
+  --color-red-800: #ffb4ab;
+  --color-yellow-100: #332b0c;
+  --color-yellow-200: #5a4a0e;
+  --color-yellow-300: #7a6515;
+  --color-yellow-900: #f7e08a;
+  --color-blue-100: #0f2336;
+  --color-blue-300: #2a5580;
+  --color-blue-800: #9ccbf5;
 }
 
 html {
@@ -21,6 +73,7 @@ html {
 body {
   margin: 0;
   background: var(--color-surface);
+  color: var(--color-ink);
 }
 
 #root {

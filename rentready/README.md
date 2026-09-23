@@ -124,8 +124,8 @@ npm run dev          # http://localhost:5173 — starts in Demo mode, no key nee
 
 ## Known limitations
 
-- Hindi is partial: the language switch works, but newer screens fall back to English until the dictionary is completed.
-- Read-aloud, the glossary and the PWA update prompt are not built yet.
+- English only for now: the Hindi dictionary is incomplete, so the language switch is hidden.
+- Read-aloud and the glossary are not built yet.
 - Demo-mode AI responses are hand-authored against the sample agreement (and verification-tested), not recorded from Gemini.
 
 ## Documentation

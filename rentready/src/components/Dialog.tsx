@@ -1,6 +1,6 @@
 /** Dialog — accessible modal, focus trap, Esc to close, focus restore */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 
 interface DialogProps {
   open: boolean;
@@ -11,6 +11,8 @@ interface DialogProps {
 }
 
 export function Dialog({ open, onClose, title, children, labelledBy }: DialogProps) {
+  const autoId = useId();
+  const titleId = labelledBy ?? autoId;
   const ref = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
 
@@ -59,10 +61,10 @@ export function Dialog({ open, onClose, title, children, labelledBy }: DialogPro
         ref={ref}
         role="dialog"
         aria-modal="true"
-        aria-labelledby={labelledBy}
-        className="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+        aria-labelledby={titleId}
+        className="relative w-full max-w-md rounded-xl bg-surface p-6 shadow-xl"
       >
-        <h2 id={labelledBy} className="text-lg font-semibold mb-4">
+        <h2 id={titleId} className="mb-4 text-lg font-semibold">
           {title}
         </h2>
         {children}

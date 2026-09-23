@@ -1,6 +1,13 @@
 import { defineConfig } from 'vitest/config';
+import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      // Only Vite's PWA plugin provides this virtual module; tests use a stub.
+      'virtual:pwa-register/react': fileURLToPath(new URL('./tests/pwaStub.ts', import.meta.url)),
+    },
+  },
   test: {
     environment: 'node',
     // Component tests need a DOM; core tests stay in Node to prove src/core has no DOM dependency.
