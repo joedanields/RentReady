@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0b6e4f;
+  --color-primary-dark: #085a40;
+  --color-ink: #161b22;
+  --color-muted: #5b6672;
+  --color-surface: #ffffff;
+  --color-border: #d9dee3;
+  --color-differs: #b42318;
+  --color-notcovered: #b54708;
+  --color-matches: #067647;
+}
+
+html {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Devanagari", sans-serif;
+  line-height: 1.6;
+  color: var(--color-ink);
+}
+
+body {
+  margin: 0;
+  background: var(--color-surface);
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Visible focus everywhere */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+[data-lang="hi"] {
+  font-family: "Noto Sans Devanagari", system-ui, sans-serif;
+}
