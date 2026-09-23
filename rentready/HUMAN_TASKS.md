@@ -35,3 +35,10 @@ Things only the project owner can do. Everything else is automated or in the rep
 - Record the demo video (script in `docs/SUBMISSION.md` §2).
 - Publish the blog post (draft will be in `docs/BLOG_DRAFT.md`) and the public post.
 - Fill in the submission form: repo URL, live URL, blog, post.
+
+## 5. Optional: a built-in key for a hosted machine evaluation
+Anything built into a static site is public: anyone can read this key from the page's JavaScript. Use it only for the evaluation window.
+1. Create a **new, throwaway** key in Google AI Studio (not your personal key).
+2. Google Cloud Console → APIs & Services → Credentials → the key → **API restrictions**: only *Generative Language API*. Set a low daily quota if your plan allows. Do not add website restrictions (the app sends no referrer, so they would block it).
+3. Cloudflare Pages → Settings → Environment variables (Production): `VITE_EVAL_GEMINI_KEY` = the key. Redeploy (it is baked in at build time).
+4. After the evaluation: **delete the key in AI Studio**, remove the variable, redeploy.

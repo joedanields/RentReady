@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { act, render, renderHook, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { AppProvider, initState, useApp, useClearEverything } from './AppProvider';
+import { AppProvider, evaluationKey, initState, useApp, useClearEverything } from './AppProvider';
+import { fakeAqKey } from '../../tests/fakeKey';
 import { INITIAL_STATE } from './reducer';
 import { DEMO_KEY, PREFS_KEY } from './storage';
 import { getLang, setLang, t } from '../i18n';
@@ -25,6 +26,15 @@ describe('initState', () => {
   it('restores demo mode for the rest of the tab', () => {
     sessionStorage.setItem(DEMO_KEY, '1');
     expect(initState(INITIAL_STATE, '').demo).toBe(true);
+  });
+});
+
+describe('evaluationKey', () => {
+  it('is off unless a valid key is set at build time', () => {
+    expect(evaluationKey({})).toBeNull();
+    expect(evaluationKey({ VITE_EVAL_GEMINI_KEY: 'not-a-key' })).toBeNull();
+    expect(evaluationKey({ VITE_EVAL_GEMINI_KEY: ` ${fakeAqKey()} ` })).toBe(fakeAqKey());
+    expect(evaluationKey()).toBeNull();
   });
 });
 

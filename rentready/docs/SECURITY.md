@@ -19,6 +19,8 @@ RentReady has **no backend**. That removes entire classes of risk (no server to 
 | Guidance | The key panel links to Google AI Studio, recommends a free-tier key created for this purpose, and explains how to delete it afterwards. |
 | No key path | Demo mode gives the full experience with bundled fixtures. |
 
+**Evaluation exception:** for a hosted machine evaluation the owner may set `VITE_EVAL_GEMINI_KEY` in the host's build settings. That key is bundled into public JavaScript, so it must be a throwaway, API-restricted key deleted after the evaluation (HUMAN_TASKS.md §5). It is unset by default and never committed.
+
 **Why this is safe enough:** the key never leaves the user's own browser, and the only party that receives it is the service that issued it. A hosted proxy would instead concentrate every user's document and one shared secret on a server we'd have to secure — a strictly larger attack surface.
 
 ## 3. Threat model

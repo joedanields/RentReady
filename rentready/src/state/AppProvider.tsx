@@ -13,6 +13,7 @@ import {
 import type { AppState, AppAction } from './reducer.js';
 import { INITIAL_STATE, reducer } from './reducer.js';
 import { getLang, setLang } from '../i18n';
+import { isKeyFormatValid } from '../core/gemini/client';
 import {
   clearAppStorage,
   loadDemoFlag,
@@ -34,18 +35,34 @@ type AppContextValue = {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
+/**
+ * Optional key for a hosted machine evaluation, set as VITE_EVAL_GEMINI_KEY in the host's build
+ * settings — never in the repo. Anything built this way ships the key in public JavaScript, so it
+ * must be a throwaway, API-restricted key deleted after the evaluation (HUMAN_TASKS.md §5).
+ * Unset by default; loaded into memory like a typed key, so "Forget key" still clears it.
+ */
+export function evaluationKey(env: Record<string, unknown> = import.meta.env): string | null {
+  const raw = env.VITE_EVAL_GEMINI_KEY;
+  return typeof raw === 'string' && isKeyFormatValid(raw.trim()) ? raw.trim() : null;
+}
+
 /** Initial state: saved preferences, then `?lang=` / `?demo=` from the URL on top. */
 export function initState(base: AppState, search: string): AppState {
   const url = readUrlParams(search);
   const prefs = loadPrefs(base.preferences);
   const remembered = loadRememberedKey();
+  const evalKey = evaluationKey();
   return {
     ...base,
     // English-only release: the Hindi dictionary is incomplete, so a saved preference or
     // ?lang=hi must not switch the UI into a half-translated state (DECISIONS #50).
     preferences: { ...prefs, language: ENGLISH_ONLY ? 'en' : (url.lang ?? prefs.language) },
     demo: base.demo || url.demo || loadDemoFlag(),
-    key: remembered ? { ...base.key, key: remembered, remember: true } : base.key,
+    key: remembered
+      ? { ...base.key, key: remembered, remember: true }
+      : evalKey
+        ? { ...base.key, key: evalKey }
+        : base.key,
   };
 }
 
